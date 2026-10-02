@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Garden Simulator — DSA Sanctuary</title>
+  
+  <!-- Approved Tech Stack -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="min-h-full flex flex-col justify-between p-3 md:p-5">
+
+  <!-- TOP BAR -->
+  <header class="w-full max-w-[1650px] mx-auto flex flex-wrap items-center justify-between gap-4 mb-4 pb-3 border-b border-[#3b4c34]/50">
+    <div class="flex items-center gap-3">
+      <div class="p-2.5 bg-emerald-950/80 border border-emerald-700/50 rounded-2xl text-emerald-400">
+        <i data-lucide="sprout" class="w-7 h-7"></i>
+      </div>
+      <div>
+        <div class="flex items-center gap-2.5">
+          <h1 class="text-xl md:text-2xl font-black tracking-tight text-emerald-100">Garden Simulator</h1>
+          <span class="text-[10px] font-bold tracking-widest text-emerald-300 bg-emerald-900/60 border border-emerald-700/50 px-2 py-0.5 rounded-md uppercase">
+            PART OF THE GAME
+          </span>
+          <span id="version-badge" class="text-[10px] font-bold text-amber-400 bg-amber-950/40 border border-amber-800/50 px-2 py-0.5 rounded-md"></span>
+        </div>
+        <p class="text-xs text-emerald-400/80 font-medium">Data Structures & Algorithms Educational Simulation</p>
+      </div>
+    </div>
+
+    <!-- Day Counter & Score Indicators -->
+    <div class="flex items-center gap-3">
+      <div class="glass-panel px-4 py-1.5 rounded-xl flex flex-col items-end border-emerald-800/40">
+        <span class="text-[10px] text-emerald-400 uppercase tracking-widest font-bold">DAY</span>
+        <span class="text-lg font-black text-white" id="day-counter">1</span>
+      </div>
+      <div class="glass-panel px-4 py-1.5 rounded-xl flex flex-col items-end border-emerald-800/40">
+        <span class="text-[10px] text-emerald-400 uppercase tracking-widest font-bold">STEWARDSHIP</span>
+        <span class="text-lg font-black text-emerald-300" id="stewardship-counter">100%</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN LAYOUT GRID -->
+  <main class="w-full max-w-[1650px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 flex-grow">
+
+    <!-- LEFT COLUMN: MARKET & RESOURCE STORAGE -->
+    <section class="lg:col-span-3 flex flex-col gap-4">
+      
+      <!-- MARKET PANEL -->
+      <div class="glass-panel rounded-2xl p-4 flex flex-col">
+        <div class="border-b border-[#43533c]/40 pb-2.5 mb-3 flex items-center justify-between">
+          <h2 class="text-sm font-bold text-emerald-200 flex items-center gap-2">
+            <i data-lucide="shopping-bag" class="w-4 h-4 text-emerald-400"></i> Market (Input Stock)
+          </h2>
+          <span class="text-xs text-yellow-300 font-extrabold" id="coins-text">100 Coins</span>
+        </div>
+
+        <p class="text-[11px] text-emerald-300/70 mb-3 leading-snug">
+          Purchase real agricultural inputs required by crops to grow.
+        </p>
+
+        <div class="space-y-2 overflow-y-auto max-h-[360px] pr-1">
+          <div class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">Crop Seeds (+2 Stock)</div>
+          <div id="market-seeds-list" class="grid grid-cols-1 gap-1.5"></div>
+
+          <div class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider mt-3">Gardening Supplies</div>
+          
+          <button onclick="buyMarketItem('water', 10, 'Water Top-up (+50L)')" class="w-full p-2 bg-[#1b251a] hover:bg-[#253324] border border-emerald-800/50 rounded-xl flex items-center justify-between transition text-left">
+            <div class="flex items-center gap-2">
+              <span class="text-lg">💧</span>
+              <div>
+                <div class="text-xs font-semibold text-emerald-100">Water Reserve Top-up</div>
+                <div class="text-[10px] text-emerald-400/70">+50L Water Storage</div>
+              </div>
+            </div>
+            <span class="text-xs font-bold text-yellow-300 bg-yellow-950/50 px-2 py-1 rounded-lg border border-yellow-800/50">10c</span>
+          </button>
+
+          <button onclick="buyMarketItem('fertilizer', 15, 'Organic Fertilizer (+20 Energy)')" class="w-full p-2 bg-[#1b251a] hover:bg-[#253324] border border-emerald-800/50 rounded-xl flex items-center justify-between transition text-left">
+            <div class="flex items-center gap-2">
+              <span class="text-lg">🧪</span>
+              <div>
+                <div class="text-xs font-semibold text-emerald-100">Organic Fertilizer</div>
+                <div class="text-[10px] text-emerald-400/70">+20 Solar/Growth Energy</div>
+              </div>
+            </div>
+            <span class="text-xs font-bold text-yellow-300 bg-yellow-950/50 px-2 py-1 rounded-lg border border-yellow-800/50">15c</span>
+          </button>
+
+          <button onclick="buyMarketItem('pesticide', 20, 'Anti-Pest Spray')" class="w-full p-2 bg-[#1b251a] hover:bg-[#253324] border border-emerald-800/50 rounded-xl flex items-center justify-between transition text-left">
+            <div class="flex items-center gap-2">
+              <span class="text-lg">🛡️</span>
+              <div>
+                <div class="text-xs font-semibold text-emerald-100">Anti-Pest Treatment</div>
+                <div class="text-[10px] text-emerald-400/70">Protects crops from Queue pests</div>
+              </div>
+            </div>
+            <span class="text-xs font-bold text-yellow-300 bg-yellow-950/50 px-2 py-1 rounded-lg border border-yellow-800/50">20c</span>
+          </button>
+
+          <button onclick="buyMarketItem('mulch', 12, 'Eco Mulch Bark (+10 Hope)')" class="w-full p-2 bg-[#1b251a] hover:bg-[#253324] border border-emerald-800/50 rounded-xl flex items-center justify-between transition text-left">
+            <div class="flex items-center gap-2">
+              <span class="text-lg">🍂</span>
+              <div>
+                <div class="text-xs font-semibold text-emerald-100">Eco Mulch Bark</div>
+                <div class="text-[10px] text-emerald-400/70">Soil moisture retention / +10 Hope</div>
+              </div>
+            </div>
+            <span class="text-xs font-bold text-yellow-300 bg-yellow-950/50 px-2 py-1 rounded-lg border border-yellow-800/50">12c</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- RESOURCE STORAGE PANEL -->
+      <div class="glass-panel rounded-2xl p-4">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-emerald-300 border-b border-[#43533c]/30 pb-2 mb-3 flex items-center gap-2">
+          <i data-lucide="database" class="w-4 h-4 text-emerald-400"></i> Resource Storage
+        </h2>
+        <div class="space-y-3">
+          <div>
+            <div class="flex justify-between text-xs font-semibold mb-1">
+              <span class="flex items-center gap-1.5 text-blue-300">💧 Water Reserves</span>
+              <span id="water-text" class="text-blue-200">100/200 L</span>
+            </div>
+            <div class="w-full bg-[#172016] h-2 rounded-full overflow-hidden border border-emerald-900/50">
+              <div id="water-bar" class="bg-gradient-to-r from-blue-600 to-cyan-400 h-full rounded-full transition-all duration-300" style="width: 50%"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs font-semibold mb-1">
+              <span class="flex items-center gap-1.5 text-emerald-300">🌱 Total Seed Stock</span>
+              <span id="seeds-text" class="text-emerald-200">10/100</span>
+            </div>
+            <div class="w-full bg-[#172016] h-2 rounded-full overflow-hidden border border-emerald-900/50">
+              <div id="seeds-bar" class="bg-gradient-to-r from-emerald-600 to-lime-400 h-full rounded-full transition-all duration-300" style="width: 10%"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs font-semibold mb-1">
+              <span class="flex items-center gap-1.5 text-amber-300">☀️ Solar Energy</span>
+              <span id="energy-text" class="text-amber-200">60/120 Wh</span>
+            </div>
+            <div class="w-full bg-[#172016] h-2 rounded-full overflow-hidden border border-emerald-900/50">
+              <div id="energy-bar" class="bg-gradient-to-r from-amber-600 to-yellow-400 h-full rounded-full transition-all duration-300" style="width: 50%"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs font-semibold mb-1">
+              <span class="flex items-center gap-1.5 text-rose-300">💖 Community Hope</span>
+              <span id="hope-text" class="text-rose-200">50/100</span>
+            </div>
+            <div class="w-full bg-[#172016] h-2 rounded-full overflow-hidden border border-emerald-900/50">
+              <div id="hope-bar" class="bg-gradient-to-r from-rose-600 to-pink-400 h-full rounded-full transition-all duration-300" style="width: 50%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CENTER COLUMN: TABBED SANCTUARY/EDITOR & HIERARCHICAL TREE PANEL -->
+    <section class="lg:col-span-6 flex flex-col gap-4 min-w-0">
+      
+      <!-- TAB NAVIGATION -->
+      <div class="flex items-center justify-between bg-[#182217] p-1.5 rounded-xl border border-emerald-800/40">
+        <div class="flex items-center gap-2">
+          <button onclick="switchTab('game')" id="tab-game" class="px-4 py-2 rounded-lg text-xs font-extrabold bg-[#283623] text-emerald-100 flex items-center gap-2 transition">
+            <i data-lucide="flower-2" class="w-4 h-4"></i> Interactive Sanctuary
+          </button>
+          <button onclick="switchTab('code')" id="tab-code" class="px-4 py-2 rounded-lg text-xs font-extrabold text-emerald-400/80 hover:text-emerald-100 flex items-center gap-2 transition">
+            <i data-lucide="code" class="w-4 h-4"></i> Student Code Editor
+          </button>
+        </div>
+        <div id="tab-status-indicator" class="text-[11px] text-emerald-400/70 font-semibold pr-2 hidden md:block">
+          Linked Pyodide Engine Active
+        </div>
+      </div>
+
+      <!-- VIEW 1: INTERACTIVE SANCTUARY (GARDEN GRID) -->
+      <div id="view-game" class="glass-panel rounded-2xl p-5 flex flex-col min-h-[380px] relative transition-all duration-300">
+        
+        <!-- CALAMITY RED WARNING BANNER -->
+        <div id="calamity-alert-banner" class="hidden mb-3 p-2.5 bg-rose-950/90 border border-rose-600/80 rounded-xl flex items-center justify-between text-xs text-rose-200 shadow-lg animate-pulse">
+          <div class="flex items-center gap-2.5 font-bold">
+            <span class="text-xl">⚠️</span>
+            <span id="calamity-alert-text">CALAMITY ALERT: Heavy Pest Risk incoming!</span>
+          </div>
+          <button onclick="clearCalamityWarning()" class="text-[10px] bg-rose-900 hover:bg-rose-800 text-rose-200 px-2 py-1 rounded-lg border border-rose-500/60 font-semibold transition">
+            Dismiss Warning
+          </button>
+        </div>
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <div>
+            <h2 class="text-base font-bold text-white flex items-center gap-2">
+              Sanctuary Garden Grid
+            </h2>
+            <p class="text-xs text-emerald-300/80">Click soil tiles to advance growth stages or harvest mature crops (⭐ Harvest Ready).</p>
+          </div>
+          
+          <!-- SEED BAG DROPDOWN WITH PER-CROP STOCK -->
+          <div class="flex items-center gap-2 bg-[#141c13] p-1.5 rounded-xl border border-emerald-800/50">
+            <span class="text-xs text-emerald-300 font-semibold pl-1">Seed Bag:</span>
+            <select id="crop-selector" class="bg-[#1e2a1b] border border-emerald-700/70 text-emerald-100 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-400">
+            </select>
+          </div>
+        </div>
+
+        <!-- 5x5 Soil Matrix Grid -->
+        <div class="flex-1 flex items-center justify-center p-2">
+          <div id="garden-grid" class="grid grid-cols-5 gap-2.5 w-full max-w-[440px]"></div>
+        </div>
+      </div>
+
+      <!-- VIEW 2: STUDENT CODE EDITOR -->
+      <div id="view-code" class="glass-panel rounded-2xl p-5 flex-col flex-grow hidden">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="font-bold text-white flex items-center gap-2 text-sm">
+            <i data-lucide="terminal" class="w-4 h-4 text-emerald-400"></i> Student Code Editor (Pyodide Lab)
+          </h2>
+          <span class="text-[11px] text-emerald-400/80 font-mono">Python 3.11</span>
+        </div>
+
+        <div class="mb-3">
+          <label class="block text-[11px] font-bold text-emerald-300 uppercase tracking-wider mb-1">Select DSA Topic Template:</label>
+          <select id="topic-selector" onchange="loadTopic()" class="w-full bg-[#131b12] border border-emerald-800 rounded-xl px-3 py-2 text-xs text-emerald-100 focus:outline-none focus:border-emerald-500">
+          </select>
+        </div>
+
+        <div class="relative flex-1 min-h-[220px] flex flex-col">
+          <textarea id="code-editor" class="w-full flex-1 bg-[#0b100a] border border-emerald-900/80 rounded-xl p-3.5 code-font text-xs text-emerald-200 font-medium leading-relaxed focus:outline-none focus:border-emerald-500 resize-none" spellcheck="false"></textarea>
+        </div>
+
+        <button onclick="runPythonCode()" class="mt-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg transition">
+          <i data-lucide="play" class="w-4 h-4"></i> Run Python Code
+        </button>
+
+        <div class="mt-3">
+          <div class="text-[10px] uppercase font-bold text-emerald-400 mb-1">Console Output (stdout):</div>
+          <div id="output-console" class="bg-[#070a07] border border-emerald-950 rounded-xl p-3 text-[11px] h-24 overflow-auto code-font whitespace-pre-wrap text-emerald-300/90"></div>
+        </div>
+      </div>
+
+      <!-- HIERARCHICAL PANEL (4-Level Consistent Tree + DFS / BFS Traversals + Path Connector String) -->
+      <div id="hierarchical-panel" class="glass-panel rounded-2xl p-4 flex flex-col min-h-[360px]">
+        <div class="border-b border-[#43533c]/40 pb-2.5 mb-3 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 class="font-bold text-emerald-300 text-xs uppercase tracking-wider flex items-center gap-2">
+              <i data-lucide="network" class="w-4 h-4 text-emerald-400"></i> Hierarchical Tree & Traversals (Topic 4 & 7)
+            </h3>
+            <p class="text-[10px] text-emerald-400/70">Root → Crop → Stages / Needs → Leaves — Visible Flow Path Connector Line (scroll to see full tree)</p>
+          </div>
+          
+          <!-- GROUPED TRAVERSAL BUTTONS -->
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- DFS Group -->
+            <div class="flex items-center gap-1 bg-[#142013] p-1 rounded-xl border border-emerald-800/60">
+              <span class="text-[9px] font-black uppercase text-emerald-400 px-1.5 tracking-wider">DFS</span>
+              <button onclick="runTraversal('preorder')" class="px-2 py-1 bg-[#1b2a1a] hover:bg-[#283d27] border border-emerald-700/60 rounded-lg text-[10px] font-semibold text-emerald-200 transition">
+                Preorder
+              </button>
+              <button onclick="runTraversal('inorder')" class="px-2 py-1 bg-[#1b2a1a] hover:bg-[#283d27] border border-emerald-700/60 rounded-lg text-[10px] font-semibold text-emerald-200 transition">
+                Inorder
+              </button>
+              <button onclick="runTraversal('postorder')" class="px-2 py-1 bg-[#1b2a1a] hover:bg-[#283d27] border border-emerald-700/60 rounded-lg text-[10px] font-semibold text-emerald-200 transition">
+                Postorder
+              </button>
+            </div>
+
+            <!-- BFS Group -->
+            <div class="flex items-center gap-1 bg-[#1f1b13] p-1 rounded-xl border border-amber-800/60">
+              <span class="text-[9px] font-black uppercase text-amber-400 px-1.5 tracking-wider">BFS</span>
+              <button onclick="runTraversal('bfs')" class="px-2 py-1 bg-[#2b2216] hover:bg-[#3d301f] border border-amber-700/60 rounded-lg text-[10px] font-semibold text-amber-200 transition">
+                Level Order (Queue)
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Rendered Tree Canvas (scrolls horizontally; wrapper is centered with m-auto so nothing is clipped) -->
+        <div id="tree-container" class="flex-1 bg-[#0d140c]/90 border border-emerald-900/50 rounded-xl relative overflow-auto p-4 min-h-[230px] flex">
+          <p class="text-xs text-emerald-400/50 italic m-auto">Executing renderTree(tree_data)...</p>
+        </div>
+
+        <!-- Traversal Output Line (wraps + scrolls so long sequences stay readable) -->
+        <div id="traversal-output-bar" class="mt-2.5 p-2.5 bg-[#080d07] border border-emerald-900/70 rounded-xl text-xs font-mono max-h-24 overflow-y-auto">
+          <span id="traversal-result-text" class="text-emerald-300/90 break-words">Select or run a traversal method above to view sequence...</span>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- RIGHT COLUMN: QUEUE, STACK, & ACHIEVEMENTS COLLECTION -->
+    <section class="lg:col-span-3 flex flex-col gap-4">
+      
+      <!-- QUEUE PANEL (FIFO Events — Reused for BFS Queue Concept) -->
+      <div id="climate-queue-panel" class="glass-panel rounded-2xl p-4 flex flex-col">
+        <h3 class="font-bold text-xs uppercase tracking-wider text-amber-300 mb-2 flex items-center gap-2">
+          <i data-lucide="cloud-rain" class="w-4 h-4 text-amber-400"></i> Climate / Event Queue (FIFO)
+        </h3>
+        <p class="text-[10px] text-emerald-300/70 mb-2">First-In, First-Out queue (powers BFS level traversal).</p>
+        <div id="climate-queue" class="space-y-2 text-xs max-h-[150px] overflow-y-auto pr-1"></div>
+      </div>
+
+      <!-- STACK PANEL (LIFO Action History) -->
+      <div id="stack-panel" class="glass-panel rounded-2xl p-4 flex-1 flex flex-col">
+        <h3 class="font-bold text-xs uppercase tracking-wider text-emerald-300 mb-2 flex items-center gap-2">
+          <i data-lucide="layers" class="w-4 h-4 text-emerald-400"></i> Action History (Stack - LIFO)
+        </h3>
+        <div id="action-stack" class="flex-1 space-y-1.5 text-xs overflow-y-auto max-h-[160px] pr-1 mb-2.5"></div>
+        
+        <button onclick="triggerUndo()" class="w-full bg-[#243321] hover:bg-[#2d4029] text-emerald-200 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 border border-emerald-800/60 transition">
+          <i data-lucide="undo-2" class="w-3.5 h-3.5"></i> Undo Action (Stack Pop)
+        </button>
+      </div>
+
+      <!-- ACHIEVEMENTS TROPHY CASE PANEL -->
+      <div id="achievements-panel" class="glass-panel rounded-2xl p-4">
+        <div class="border-b border-[#43533c]/40 pb-2 mb-2.5 flex items-center justify-between">
+          <h3 class="font-bold text-xs uppercase tracking-wider text-yellow-300 flex items-center gap-2">
+            <i data-lucide="trophy" class="w-4 h-4 text-yellow-400"></i> My Collection (Trophy Case)
+          </h3>
+          <span id="trophy-count" class="text-[10px] font-bold text-yellow-400 bg-yellow-950/60 px-2 py-0.5 rounded-full border border-yellow-800/60">0/5 Medals</span>
+        </div>
+        
+        <p class="text-[10px] text-emerald-300/70 mb-2.5">Collectible certificates & badges earned from Python game milestones.</p>
+        
+        <!-- Trophy Grid Showcase -->
+        <div id="achievements-trophy-grid" class="grid grid-cols-1 gap-2 max-h-[240px] overflow-y-auto pr-1"></div>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- JAVASCRIPT LOGIC & PYODIDE BRIDGE -->
+  <script>
+    const APP_VERSION = "0.6.0";
+    let pyodideInstance = null;
+    let gardenPlants = {}; // pos -> { name, stage (1-4), ready (bool) }
+    let displayActionHistory = [];
+    let currentCoins = 100;
+    let currentWater = 100;
+    let currentSeeds = 10;
+    let currentEnergy = 60;
+    let currentHope = 50;
+    let currentTreeData = null;
+    let isTraversing = false;
+
+    // PER-CROP SEED STOCK INVENTORY STATE
+    let cropSeeds = {
+      "Eggplant": 2,
+      "Tomato": 2,
+      "Carrot": 2,
+      "Corn": 2,
+      "Watermelon": 2
+    };
+
+    // REAL CROPS SPECIFICATIONS & STAGES
+    const REAL_CROPS = {
+      "Carrot":    { emoji: "🥕", cost: 10,  waterNeed: 5,  energyNeed: 10, yield: 12 },
+      "Tomato":    { emoji: "🍅", cost: 15, waterNeed: 10, energyNeed: 15, yield: 25 },
+      "Eggplant":  { emoji: "🍆", cost: 20, waterNeed: 15, energyNeed: 20, yield: 35 },
+      "Corn":      { emoji: "🌽", cost: 25, waterNeed: 25, energyNeed: 30, yield: 50 },
+      "Watermelon":{ emoji: "🍉", cost: 30, waterNeed: 40, energyNeed: 40, yield: 80 }
+    };
+
+    const STAGE_EMOJIS = { 1: "🌰", 2: "🌱", 3: "🪴", 4: null };
+
+    // --- CONSISTENT TREE TEMPLATE (single source of truth for the default tree) ---
+    // Every crop branch is generated from the SAME loop: Crop → [Stages, Needs] → fixed leaves.
+    const TREE_CROP_ORDER = [
+      ["Eggplant", "🍆"], ["Tomato", "🍅"], ["Carrot", "🥕"], ["Corn", "🌽"], ["Watermelon", "🍉"]
+    ];
+    const TREE_STAGE_LEAVES = [   // emoji null = use the crop's own emoji (Mature)
+      ["Seed", "🌰"], ["Sprout", "🌱"], ["Young", "🌿"], ["Mature", null], ["Ready", "⭐"]
+    ];
+    const TREE_NEED_LEAVES = [
+      ["Water", "💧"], ["Fertilizer", "🌾"], ["Anti-Pest", "🛡️"]
+    ];
+
+    function buildCropBranch(name, emoji) {
+      const key = name.toLowerCase();
+      return {
+        id: `node-${key}`,
+        emoji: emoji,
+        label: name,
+        children: [
+          {
+            id: `node-${key}-stages`,
+            emoji: "📁",
+            label: "Stages",
+            children: TREE_STAGE_LEAVES.map(([label, e]) => ({
+              id: `node-${key}-${label.toLowerCase()}`,
+              emoji: e || emoji,
+              label: label,
+              children: []
+            }))
+          },
+          {
+            id: `node-${key}-needs`,
+            emoji: "📁",
+            label: "Needs",
+            children: TREE_NEED_LEAVES.map(([label, e]) => ({
+              id: `node-${key}-${label.toLowerCase()}`,
+              emoji: e,
+              label: label,
+              children: []
+            }))
+          }
+        ]
+      };
+    }
+
+    function buildGardenTree() {
+      return {
+        id: "node-root",
+        emoji: "🌱",
+        label: "Garden Root",
+        children: TREE_CROP_ORDER.map(([name, emoji]) => buildCropBranch(name, emoji))
+      };
+    }
+
+    // ACHIEVEMENTS COLLECTION SYSTEM
+    const achievements = [
+      { id: "first_harvest", title: "First Harvest", desc: "Harvested your first mature crop", icon: "🥇", type: "Medal", unlocked: false },
+      { id: "locust_survivor", title: "Locust Survivor", desc: "Protected garden from a pest swarm", icon: "🛡️", type: "Certificate", unlocked: false },
+      { id: "all_crops", title: "Botanical Master", desc: "Grew all 5 real crop types", icon: "🏆", type: "Certificate", unlocked: false },
+      { id: "day_10", title: "Decade Steward", desc: "Reached Day 10 of cultivation", icon: "📜", type: "Certificate", unlocked: false },
+      { id: "coins_100", title: "Harvest Tycoon", desc: "Accumulated 100+ Market Coins", icon: "💰", type: "Medal", unlocked: false }
+    ];
+
+    // DSA TOPIC CODE TEMPLATES
+    const topicTemplates = {
+      1: {
+        title: "Topic 1: Python OOP + Big O + Stacks (LIFO)",
+        code: `# Topic 1: Stacks & Action History Logging
+class ActionStack:
+    def __init__(self):
+        self.stack = []
+    def push(self, action):
+        self.stack.append(action)
+        pushAction(action)
+    def pop(self):
+        return self.stack.pop() if self.stack else None
+
+s = ActionStack()
+s.push("Inspected crop moisture")
+s.push("Applied eco-mulch layer")
+updateResources(water=120, seeds=15, energy=80, hope=60, coins=110)
+unlockAchievement("coins_100", "Harvest Tycoon", "💰")
+print("Action Stack updated via Python OOP.")
+`
+      },
+      2: {
+        title: "Topic 2: Queues & Deques (FIFO Climate Queue & Calamity Alert)",
+        code: `# Topic 2: FIFO Climate & Calamity Warning Trigger
+events = [
+    "🦗 Locust Swarm Risk (Needs Anti-Pest)",
+    "🌧️ Sudden Downpour (+30L Water)",
+    "☀️ High Solar Radiation"
+]
+
+updateClimateQueue(events)
+triggerCalamityWarning("🦗 Locust Swarm Risk!")
+print(f"Queued {len(events)} events in FIFO structure and triggered Calamity Alert.")
+`
+      },
+      3: {
+        title: "Topic 3: 2D Grid Matrix & Stage Progression",
+        code: `# Topic 3: 2D Garden Matrix & Seed Bag Stock
+addPlantsToDropdown([
+    ["Eggplant", "🍆", 15, 4],
+    ["Tomato", "🍅", 10, 5],
+    ["Carrot", "🥕", 5, 3]
+])
+
+addPlantToGrid(0, "Eggplant", 1, False)   # Seed
+addPlantToGrid(1, "Tomato", 2, False)     # Sprout
+addPlantToGrid(2, "Carrot", 3, False)     # Young
+addPlantToGrid(3, "Corn", 4, False)       # Mature
+addPlantToGrid(4, "Watermelon", 4, True)  # Mature + Ready for Harvest (⭐)
+
+pushAction("Updated 2D soil matrix growth stages & Seed Bag inventory")
+print("Planted 5 distinct growth stage nodes on grid.")
+`
+      },
+      4: {
+        title: "Topic 4 & 7: Hierarchical Trees & Traversal Path Lines",
+        code: `# Topic 4 & 7: Hierarchical Tree Traversals (DFS vs BFS)
+# Every crop branch is built from the SAME template (Stages + Needs),
+# so the tree is always consistent and traversals read as a repeating pattern.
+from pyodide.ffi import to_js
+from js import Object
+
+CROPS = [
+    ("Eggplant", "🍆"),
+    ("Tomato", "🍅"),
+    ("Carrot", "🥕"),
+    ("Corn", "🌽"),
+    ("Watermelon", "🍉"),
+]
+
+# Template: (label, emoji). emoji None -> use the crop's own emoji (Mature)
+STAGES = [("Seed", "🌰"), ("Sprout", "🌱"), ("Young", "🌿"), ("Mature", None), ("Ready", "⭐")]
+NEEDS = [("Water", "💧"), ("Fertilizer", "🌾"), ("Anti-Pest", "🛡️")]
+
+def make_node(node_id, emoji, label, children=None):
+    return {"id": node_id, "emoji": emoji, "label": label, "children": children or []}
+
+def build_crop_branch(name, emoji):
+    key = name.lower()
+    stages = make_node(f"node-{key}-stages", "📁", "Stages", [
+        make_node(f"node-{key}-{label.lower()}", e or emoji, label)
+        for label, e in STAGES
+    ])
+    needs = make_node(f"node-{key}-needs", "📁", "Needs", [
+        make_node(f"node-{key}-{label.lower()}", e, label)
+        for label, e in NEEDS
+    ])
+    return make_node(f"node-{key}", emoji, name, [stages, needs])
+
+tree_data = make_node("node-root", "🌱", "Garden Root", [
+    build_crop_branch(name, emoji) for name, emoji in CROPS
+])
+
+# Send the Python dict to the JS tree renderer, then trace it
+renderTree(to_js(tree_data, dict_converter=Object.fromEntries))
+runTraversal("preorder")
+print("Built a consistent tree from one template: 5 crops x (Stages + Needs).")
+`
+      },
+      5: { title: "Topic 5: Binary Search Trees (BST)", code: `# Topic 5: BST Operations\nprint("BST Module active.")` },
+      6: { title: "Topic 6: Hash Tables & Collisions", code: `# Topic 6: Hash Tables\nprint("Hash Table Module active.")` },
+      7: { title: "Topic 7: Graph Foundations (DFS/BFS)", code: `# Topic 7: Graph Traversal\nrunTraversal("bfs")` },
+      8: { title: "Topic 8: Sorting Algorithms", code: `# Topic 8: Crop Sorting\nprint("Sorting Module active.")` },
+      9: { title: "Topic 9: Searching Algorithms", code: `# Topic 9: Crop Search\nprint("Searching Module active.")` },
+      10: { title: "Topic 10: Dynamic Optimization", code: `# Topic 10: Dynamic Paradigms\nprint("Optimization Module active.")` },
+      11: { title: "Topic 11: Dynamic Programming", code: `# Topic 11: DP Yield Calculation\nprint("DP Module active.")` }
+    };
+
+    // --- INITIALIZATION ---
+    window.onload = () => {
+      document.getElementById("version-badge").textContent = "v" + APP_VERSION;
+      populateMarketSeeds();
+      populateSeedDropdown();
+      renderGarden();
+      renderActionStack();
+      renderAchievementsGrid();
+      
+      updateClimateQueue([
+        "🦗 Locust Swarm Risk (Needs Anti-Pest)",
+        "🌤️ Mild Weather (Optimal Growth)"
+      ]);
+      
+      const select = document.getElementById("topic-selector");
+      Object.keys(topicTemplates).forEach(k => {
+        const opt = document.createElement("option");
+        opt.value = k;
+        opt.textContent = topicTemplates[k].title;
+        select.appendChild(opt);
+      });
+      loadTopic();
+
+      // Default consistent tree: Root → 5 crops → (Stages, Needs) → fixed leaves
+      renderTree(buildGardenTree());
+
+      lucide.createIcons();
+      initPyodide().catch(err => console.error("Pyodide pre-load error:", err));
+    };
+
+    // --- PYODIDE INTERFACE & EXECUTION ---
+    async function initPyodide() {
+      if (pyodideInstance) return;
+      const consoleEl = document.getElementById("output-console");
+      if (consoleEl) consoleEl.innerHTML = '<span class="text-amber-400">Loading Pyodide WASM Engine...</span>\n';
+      
+      try {
+        pyodideInstance = await loadPyodide();
+        
+        // Expose JavaScript Bridge Functions to Python
+        pyodideInstance.globals.set("addPlantToGrid", addPlantToGrid);
+        pyodideInstance.globals.set("updateResources", updateResources);
+        pyodideInstance.globals.set("addPlantsToDropdown", addPlantsToDropdown);
+        pyodideInstance.globals.set("pushAction", pushAction);
+        pyodideInstance.globals.set("updateClimateQueue", updateClimateQueue);
+        pyodideInstance.globals.set("renderTree", renderTree);
+        pyodideInstance.globals.set("unlockAchievement", unlockAchievement);
+        pyodideInstance.globals.set("runTraversal", runTraversal);
+        pyodideInstance.globals.set("triggerCalamityWarning", triggerCalamityWarning);
+        pyodideInstance.globals.set("clearCalamityWarning", clearCalamityWarning);
+
+        await pyodideInstance.runPythonAsync(`
+import sys
+from js import document
+
+class ConsoleRedirect:
+    def write(self, text):
+        el = document.getElementById("output-console")
+        if el:
+            el.innerHTML += text.replace("\\n", "<br>")
+    def flush(self): pass
+
+sys.stdout = ConsoleRedirect()
+`);
+        if (consoleEl) consoleEl.innerHTML = '<span class="text-emerald-400">Python Engine Ready.</span><br>';
+      } catch (err) {
+        if (consoleEl) consoleEl.innerHTML = `<span class="text-red-400">Python Error: ${err.message}</span>`;
+      }
+    }
+
+    async function runPythonCode() {
+      const consoleEl = document.getElementById("output-console");
+      consoleEl.innerHTML = '<span class="text-amber-400">Executing Python code...</span><br>';
+      try {
+        await initPyodide();
+        const code = document.getElementById("code-editor").value.trim();
+        await pyodideInstance.runPythonAsync(code);
+      } catch (err) {
+        consoleEl.innerHTML += `<span class="text-red-400">Runtime Error: ${err.message}</span>`;
+      }
+    }
+
+    // --- SANCTUARY CALAMITY ALERT WARNING ENGINE ---
+    function triggerCalamityWarning(eventName) {
+      const alertBanner = document.getElementById("calamity-alert-banner");
+      const alertText = document.getElementById("calamity-alert-text");
+      const gardenView = document.getElementById("view-game");
+
+      if (alertBanner && alertText && gardenView) {
+        alertText.textContent = `CALAMITY ALERT: ${eventName || "Severe Weather Swarm"} incoming!`;
+        alertBanner.classList.remove("hidden");
+        gardenView.classList.add("calamity-warning-active");
+        showToast(`⚠️ WARNING: ${eventName} is arriving!`);
+      }
+    }
+
+    function clearCalamityWarning() {
+      const alertBanner = document.getElementById("calamity-alert-banner");
+      const gardenView = document.getElementById("view-game");
+      if (alertBanner && gardenView) {
+        alertBanner.classList.add("hidden");
+        gardenView.classList.remove("calamity-warning-active");
+      }
+    }
+
+    // --- TREE TRAVERSAL BRIDGE & VISIBLE FLOW PATH CONNECTOR ---
+    function runTraversal(order) {
+      if (!currentTreeData || isTraversing) return;
+      const orderType = (order || "preorder").toLowerCase();
+      let sequence = [];
+
+      if (orderType === "preorder") {
+        function preorder(node) {
+          if (!node) return;
+          sequence.push(node);
+          (node.children || []).forEach(preorder);
+        }
+        preorder(currentTreeData);
+      } else if (orderType === "inorder") {
+        function inorder(node) {
+          if (!node) return;
+          const children = node.children || [];
+          if (children.length > 0) inorder(children[0]);
+          sequence.push(node);
+          for (let i = 1; i < children.length; i++) {
+            inorder(children[i]);
+          }
+        }
+        inorder(currentTreeData);
+      } else if (orderType === "postorder") {
+        function postorder(node) {
+          if (!node) return;
+          (node.children || []).forEach(postorder);
+          sequence.push(node);
+        }
+        postorder(currentTreeData);
+      } else if (orderType === "bfs") {
+        let queue = [currentTreeData];
+        while (queue.length > 0) {
+          let curr = queue.shift();
+          sequence.push(curr);
+          (curr.children || []).forEach(child => queue.push(child));
+        }
+      }
+
+      animateTraversalSequence(orderType, sequence);
+    }
+
+    function animateTraversalSequence(orderType, sequence) {
+      isTraversing = true;
+      const textEl = document.getElementById("traversal-result-text");
+      const pathGroup = document.getElementById("tree-traversal-lines");
+      
+      textEl.innerHTML = `<span class="text-amber-400 font-bold">Traversing (${orderType.toUpperCase()})...</span>`;
+
+      // Clear existing node highlights & traversal path lines
+      document.querySelectorAll(".node-highlight-active").forEach(el => el.classList.remove("node-highlight-active"));
+      if (pathGroup) pathGroup.innerHTML = "";
+
+      const wrapper = document.getElementById("tree-wrapper");
+      let idx = 0;
+
+      const interval = setInterval(() => {
+        if (idx < sequence.length) {
+          const node = sequence[idx];
+
+          // 1. Highlight Node Card
+          if (node.domCard) {
+            node.domCard.classList.add("node-highlight-active");
+            setTimeout(() => node.domCard.classList.remove("node-highlight-active"), 750);
+          }
+
+          // 2. Draw Traversal Flow Line String from Prev Node to Current Node
+          if (idx > 0 && wrapper && pathGroup) {
+            const prevNode = sequence[idx - 1];
+            if (prevNode.domCard && node.domCard) {
+              const p1 = getNodeCenter(prevNode.domCard, wrapper);
+              const p2 = getNodeCenter(node.domCard, wrapper);
+
+              const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+              const dx = p2.x - p1.x;
+              const dy = p2.y - p1.y;
+              const controlX = (p1.x + p2.x) / 2 + (dy > 0 ? 15 : -15);
+              const controlY = (p1.y + p2.y) / 2 - 20;
+
+              const d = `M ${p1.x} ${p1.y} Q ${controlX} ${controlY}, ${p2.x} ${p2.y}`;
+              path.setAttribute("d", d);
+              path.setAttribute("class", "traversal-flow-line");
+              pathGroup.appendChild(path);
+            }
+          }
+
+          idx++;
+        } else {
+          clearInterval(interval);
+          isTraversing = false;
+
+          // Format Result Text
+          const formattedSeq = sequence.map(n => `${n.emoji} ${n.label}`).join(" → ");
+          const familyTag = orderType === "bfs" ? "BFS (Queue Level Order)" : `DFS (${orderType.charAt(0).toUpperCase() + orderType.slice(1)})`;
+          
+          textEl.innerHTML = `<b class="text-yellow-300">${familyTag}:</b> <span class="text-emerald-200">${formattedSeq}</span>`;
+          printConsole(`${familyTag}: ${formattedSeq}`);
+        }
+      }, 500);
+    }
+
+    function getNodeCenter(card, wrapper) {
+      const wrapperRect = wrapper.getBoundingClientRect();
+      const cardRect = card.getBoundingClientRect();
+      return {
+        x: cardRect.left + cardRect.width / 2 - wrapperRect.left,
+        y: cardRect.top + cardRect.height / 2 - wrapperRect.top
+      };
+    }
+
+    // --- VISUAL HIERARCHICAL TREE RENDERER ---
+    function renderTree(treeData) {
+      currentTreeData = treeData;
+      const container = document.getElementById("tree-container");
+      container.innerHTML = "";
+      if (!treeData) return;
+
+      const svgNS = "http://www.w3.org/2000/svg";
+      const wrapper = document.createElement("div");
+      wrapper.id = "tree-wrapper";
+      // w-max + m-auto: wide tree scrolls inside the container and is centered when it fits
+      wrapper.className = "relative p-4 w-max m-auto min-h-[220px]";
+
+      const svg = document.createElementNS(svgNS, "svg");
+      svg.id = "tree-svg";
+      svg.setAttribute("class", "absolute top-0 left-0 w-full h-full pointer-events-none z-0");
+
+      const structGroup = document.createElementNS(svgNS, "g");
+      structGroup.id = "tree-structural-lines";
+
+      const traversalGroup = document.createElementNS(svgNS, "g");
+      traversalGroup.id = "tree-traversal-lines";
+
+      svg.appendChild(structGroup);
+      svg.appendChild(traversalGroup);
+      wrapper.appendChild(svg);
+
+      // Recursive DOM Node Builder (depth classes 1 to 5; compact styling for leaves)
+      function buildDOMNode(node, depth = 1) {
+        const isLeaf = !node.children || node.children.length === 0;
+        const nodeEl = document.createElement("div");
+        nodeEl.className = `tree-node flex flex-col items-center ${isLeaf ? "mx-1" : "mx-2"} z-10 relative my-1.5`;
+
+        const card = document.createElement("div");
+        const levelClass = `tree-level-${Math.min(5, depth)}`;
+        const sizeClass = isLeaf ? "px-1.5 py-0.5 text-[10px]" : "px-2.5 py-1 text-[11px]";
+        card.className = `tree-node-card ${levelClass} border rounded-lg ${sizeClass} flex items-center gap-1 font-bold whitespace-nowrap`;
+        card.innerHTML = `<span>${node.emoji || '🍃'}</span> <span>${node.label || ''}</span>`;
+        
+        node.domCard = card;
+        nodeEl.appendChild(card);
+
+        if (!isLeaf) {
+          const childrenCont = document.createElement("div");
+          childrenCont.className = "tree-children flex justify-center items-start mt-6 relative";
+          node.children.forEach(child => {
+            childrenCont.appendChild(buildDOMNode(child, depth + 1));
+          });
+          nodeEl.appendChild(childrenCont);
+        }
+        return nodeEl;
+      }
+
+      const treeDOM = buildDOMNode(treeData, 1);
+      wrapper.appendChild(treeDOM);
+      container.appendChild(wrapper);
+
+      setTimeout(() => drawTreeConnectors(wrapper, structGroup), 50);
+    }
+
+    function drawTreeConnectors(wrapper, structGroup) {
+      structGroup.innerHTML = "";
+      const wrapperRect = wrapper.getBoundingClientRect();
+      const cards = wrapper.querySelectorAll(".tree-node-card");
+
+      cards.forEach(card => {
+        const parentNodeEl = card.parentElement;
+        const childrenCont = parentNodeEl.querySelector(":scope > .tree-children");
+        if (childrenCont) {
+          const parentRect = card.getBoundingClientRect();
+          const parentX = parentRect.left + parentRect.width / 2 - wrapperRect.left;
+          const parentY = parentRect.bottom - wrapperRect.top;
+
+          const childCards = childrenCont.querySelectorAll(":scope > .tree-node > .tree-node-card");
+          childCards.forEach(childCard => {
+            const childRect = childCard.getBoundingClientRect();
+            const childX = childRect.left + childRect.width / 2 - wrapperRect.left;
+            const childY = childRect.top - wrapperRect.top;
+
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            const midY = (parentY + childY) / 2;
+            const d = `M ${parentX} ${parentY} C ${parentX} ${midY}, ${childX} ${midY}, ${childX} ${childY}`;
+            path.setAttribute("d", d);
+            path.setAttribute("stroke", "#10b981");
+            path.setAttribute("stroke-width", "1.5");
+            path.setAttribute("fill", "none");
+            path.setAttribute("stroke-dasharray", "3 2");
+            structGroup.appendChild(path);
+          });
+        }
+      });
+    }
+
+    // --- SEED BAG INVENTORY & DROPDOWN MANAGEMENT ---
+    function populateSeedDropdown() {
+      const select = document.getElementById("crop-selector");
+      select.innerHTML = "";
+
+      Object.entries(REAL_CROPS).forEach(([name, crop]) => {
+        const stock = cropSeeds[name] !== undefined ? cropSeeds[name] : 0;
+        const option = document.createElement("option");
+        option.value = name;
+
+        if (stock <= 0) {
+          option.textContent = `${crop.emoji} ${name} (Out of Stock) — ${crop.cost}c`;
+          option.className = "text-gray-400 bg-[#121811]";
+        } else {
+          option.textContent = `${crop.emoji} ${name} Seeds (x${stock}) — ${crop.cost}c`;
+          option.className = "text-emerald-100 bg-[#1e2a1b]";
+        }
+
+        select.appendChild(option);
+      });
+
+      // Update total seeds sum
+      currentSeeds = Object.values(cropSeeds).reduce((a, b) => a + b, 0);
+      updateResources(currentWater, currentSeeds, currentEnergy, currentHope, currentCoins);
+    }
+
+    function addPlantsToDropdown(plants) {
+      if (!plants || !Array.isArray(plants)) return;
+      plants.forEach(p => {
+        let name, stock;
+        if (Array.isArray(p)) {
+          name = p[0];
+          stock = p[3] !== undefined ? p[3] : p[2];
+        } else if (typeof p === 'object') {
+          name = p.name;
+          stock = p.stock !== undefined ? p.stock : p.count;
+        }
+        if (name && REAL_CROPS[name] && stock !== undefined) {
+          cropSeeds[name] = parseInt(stock);
+        }
+      });
+      populateSeedDropdown();
+    }
+
+    // --- GAME ENGINE LOGIC & TILE INTERACTIONS ---
+    function addPlantToGrid(pos, name, stage = 1, ready = false) {
+      if (pos >= 0 && pos < 25) {
+        if (typeof stage === 'string') {
+          const lower = stage.toLowerCase();
+          if (lower === 'seed') stage = 1;
+          else if (lower === 'sprout') stage = 2;
+          else if (lower === 'young') stage = 3;
+          else if (lower === 'mature') stage = 4;
+          else stage = 1;
+        }
+
+        gardenPlants[pos] = {
+          name: name,
+          stage: Math.min(4, Math.max(1, parseInt(stage))),
+          ready: Boolean(ready)
+        };
+        renderGarden();
+        checkAutomaticMilestones();
+      }
+    }
+
+    function renderGarden() {
+      const grid = document.getElementById("garden-grid");
+      grid.innerHTML = "";
+      for (let i = 0; i < 25; i++) {
+        const cell = document.createElement("div");
+        const plant = gardenPlants[i];
+
+        let classNames = "garden-tile aspect-square bg-[#1b251a] border border-emerald-800/60 rounded-xl flex flex-col items-center justify-center cursor-pointer relative group";
+        if (plant && plant.ready) classNames += " harvest-ready";
+
+        cell.className = classNames;
+        cell.onclick = () => handleTileClick(i);
+
+        if (plant && REAL_CROPS[plant.name]) {
+          const crop = REAL_CROPS[plant.name];
+          let displayEmoji = STAGE_EMOJIS[plant.stage] || crop.emoji;
+          let stageLabel = plant.stage === 1 ? "Seed" : plant.stage === 2 ? "Sprout" : plant.stage === 3 ? "Young" : "Mature";
+
+          cell.innerHTML = `
+            <span class="text-2xl">${displayEmoji}</span>
+            <span class="text-[9px] text-emerald-300/90 font-bold mt-0.5 leading-none">${plant.name}</span>
+            <span class="text-[8px] text-emerald-400/60 font-mono leading-none mt-0.5">${stageLabel}</span>
+          `;
+
+          if (plant.ready) {
+            cell.innerHTML += `
+              <span class="absolute -top-1.5 -right-1.5 bg-yellow-400 text-black font-extrabold text-[10px] rounded-full w-5 h-5 flex items-center justify-center shadow-lg ring-2 ring-yellow-200 animate-bounce" title="Ready for Harvest!">
+                ⭐
+              </span>
+            `;
+          }
+        } else {
+          cell.innerHTML = `<span class="text-xs text-emerald-800/40 font-mono">${i}</span>`;
+        }
+        grid.appendChild(cell);
+      }
+    }
+
+    function handleTileClick(pos) {
+      const selectedCrop = document.getElementById("crop-selector").value;
+      const plant = gardenPlants[pos];
+
+      if (plant) {
+        if (plant.ready) {
+          const crop = REAL_CROPS[plant.name];
+          currentCoins += crop.yield;
+          pushAction(`Harvested ⭐ ${plant.name} (+${crop.yield}c)`);
+          delete gardenPlants[pos];
+          unlockAchievement("first_harvest", "First Harvest", "🥇");
+        } else if (plant.stage < 4) {
+          plant.stage++;
+          if (plant.stage === 4) plant.ready = true;
+          pushAction(`Nurtured ${plant.name} to Stage ${plant.stage}`);
+        } else {
+          plant.ready = true;
+          pushAction(`Marked ${plant.name} as Harvest-Ready!`);
+        }
+      } else {
+        // PLANTING LOGIC: Check crop stock
+        if (!selectedCrop) return;
+        const stock = cropSeeds[selectedCrop] || 0;
+
+        if (stock <= 0) {
+          showToast(`Out of ${selectedCrop} seeds! Purchase more from the Market.`);
+          return;
+        }
+
+        cropSeeds[selectedCrop]--;
+        gardenPlants[pos] = { name: selectedCrop, stage: 1, ready: false };
+        pushAction(`Planted ${REAL_CROPS[selectedCrop].emoji} ${selectedCrop} Seed at slot #${pos}`);
+        populateSeedDropdown();
+      }
+
+      renderGarden();
+      checkAutomaticMilestones();
+    }
+
+    function unlockAchievement(id, title, icon) {
+      let ach = achievements.find(a => a.id === id);
+      if (!ach) {
+        ach = { id: id, title: title || id, desc: "Custom Python Milestone", icon: icon || "🏆", type: "Medal", unlocked: true };
+        achievements.push(ach);
+      } else {
+        if (ach.unlocked) return;
+        ach.unlocked = true;
+        if (title) ach.title = title;
+        if (icon) ach.icon = icon;
+      }
+
+      renderAchievementsGrid();
+      showToast(`🏆 Medal Unlocked: ${ach.title}`);
+    }
+
+    function renderAchievementsGrid() {
+      const container = document.getElementById("achievements-trophy-grid");
+      const countEl = document.getElementById("trophy-count");
+      container.innerHTML = "";
+
+      let unlockedCount = 0;
+
+      achievements.forEach(ach => {
+        if (ach.unlocked) unlockedCount++;
+
+        const card = document.createElement("div");
+        card.className = `trophy-card p-2.5 rounded-xl border flex items-center justify-between transition ${
+          ach.unlocked ? "unlocked unlock-animated" : "locked"
+        }`;
+
+        card.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            <span class="text-2xl">${ach.unlocked ? ach.icon : "🔒"}</span>
+            <div>
+              <div class="text-xs font-bold ${ach.unlocked ? "text-yellow-200" : "text-emerald-500/70"}">${ach.title}</div>
+              <div class="text-[10px] ${ach.unlocked ? "text-emerald-300/80" : "text-emerald-600/50"}">${ach.desc}</div>
+            </div>
+          </div>
+          <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded ${
+            ach.unlocked ? "bg-yellow-950/80 text-yellow-300 border border-yellow-700/60" : "bg-emerald-950/30 text-emerald-700"
+          }">${ach.type}</span>
+        `;
+        container.appendChild(card);
+      });
+
+      countEl.textContent = `${unlockedCount}/${achievements.length} Medals`;
+    }
+
+    function checkAutomaticMilestones() {
+      if (currentCoins >= 100) unlockAchievement("coins_100", "Harvest Tycoon", "💰");
+      
+      const grownTypes = new Set(Object.values(gardenPlants).map(p => p.name));
+      if (grownTypes.size >= 5) unlockAchievement("all_crops", "Botanical Master", "🏆");
+    }
+
+    function updateResources(water, seeds, energy, hope, coins) {
+      if (typeof water === "object" && water !== null) {
+        const args = water;
+        currentWater = args.water !== undefined ? args.water : currentWater;
+        currentSeeds = args.seeds !== undefined ? args.seeds : currentSeeds;
+        currentEnergy = args.energy !== undefined ? args.energy : currentEnergy;
+        currentHope = args.hope !== undefined ? args.hope : currentHope;
+        currentCoins = args.coins !== undefined ? args.coins : currentCoins;
+      } else {
+        currentWater = water !== undefined ? water : currentWater;
+        currentSeeds = seeds !== undefined ? seeds : currentSeeds;
+        currentEnergy = energy !== undefined ? energy : currentEnergy;
+        currentHope = hope !== undefined ? hope : currentHope;
+        currentCoins = coins !== undefined ? coins : currentCoins;
+      }
+
+      const waterMax = 200, seedsMax = 100, energyMax = 120, hopeMax = 100;
+
+      document.getElementById("water-text").innerText = `${currentWater}/${waterMax} L`;
+      document.getElementById("water-bar").style.width = `${Math.min(100, (currentWater / waterMax) * 100)}%`;
+
+      document.getElementById("seeds-text").innerText = `${currentSeeds}/${seedsMax}`;
+      document.getElementById("seeds-bar").style.width = `${Math.min(100, (currentSeeds / seedsMax) * 100)}%`;
+
+      document.getElementById("energy-text").innerText = `${currentEnergy}/${energyMax} Wh`;
+      document.getElementById("energy-bar").style.width = `${Math.min(100, (currentEnergy / energyMax) * 100)}%`;
+
+      document.getElementById("hope-text").innerText = `${currentHope}/${hopeMax}`;
+      document.getElementById("hope-bar").style.width = `${Math.min(100, (currentHope / hopeMax) * 100)}%`;
+
+      document.getElementById("coins-text").innerText = `${currentCoins} Coins`;
+      checkAutomaticMilestones();
+    }
+
+    function pushAction(action) {
+      displayActionHistory.push(action);
+      if (displayActionHistory.length > 10) displayActionHistory.shift();
+      renderActionStack();
+    }
+
+    function renderActionStack() {
+      const container = document.getElementById("action-stack");
+      container.innerHTML = "";
+      [...displayActionHistory].reverse().forEach(act => {
+        const div = document.createElement("div");
+        div.className = "bg-[#182417] border-l-2 border-emerald-400 px-2.5 py-1.5 rounded text-[11px] text-emerald-100 flex items-center justify-between";
+        div.innerHTML = `<span>${act}</span> <span class="text-[9px] text-emerald-500 font-mono">LIFO</span>`;
+        container.appendChild(div);
+      });
+    }
+
+    function triggerUndo() {
+      if (displayActionHistory.length > 0) {
+        const undone = displayActionHistory.pop();
+        renderActionStack();
+        showToast(`Undone: ${undone}`);
+      } else {
+        showToast("Action stack is empty.");
+      }
+    }
+
+    function updateClimateQueue(events) {
+      const container = document.getElementById("climate-queue");
+      container.innerHTML = "";
+      if (!events || !events.length) {
+        container.innerHTML = '<div class="text-[11px] text-emerald-400/50 italic">FIFO queue empty.</div>';
+        clearCalamityWarning();
+        return;
+      }
+
+      events.forEach((event, idx) => {
+        const div = document.createElement("div");
+        div.className = "p-2 bg-[#211a14] border border-amber-900/60 rounded-xl text-xs flex items-center justify-between";
+        div.innerHTML = `
+          <span class="font-semibold text-amber-200">${event}</span>
+          <span class="text-[9px] bg-amber-950 text-amber-400 border border-amber-800/60 px-1.5 py-0.5 rounded">FIFO #${idx+1}</span>
+        `;
+        container.appendChild(div);
+      });
+
+      // Auto-trigger calamity warning if front event contains severe weather
+      const frontEvent = events[0];
+      if (frontEvent && (frontEvent.includes("Locust") || frontEvent.includes("Heat Wave") || frontEvent.includes("Acid Rain"))) {
+        triggerCalamityWarning(frontEvent);
+      } else {
+        clearCalamityWarning();
+      }
+    }
+
+    function populateMarketSeeds() {
+      const container = document.getElementById("market-seeds-list");
+      container.innerHTML = "";
+      Object.entries(REAL_CROPS).forEach(([name, crop]) => {
+        const btn = document.createElement("button");
+        btn.className = "p-2 bg-[#1b251a] hover:bg-[#253324] border border-emerald-800/50 rounded-xl flex items-center justify-between transition text-left";
+        btn.onclick = () => buySeed(name, crop);
+        btn.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="text-lg">${crop.emoji}</span>
+            <div>
+              <div class="text-xs font-semibold text-emerald-100">${name} Seeds (+2)</div>
+              <div class="text-[10px] text-emerald-400/70">W:${crop.waterNeed}L | E:${crop.energyNeed}Wh</div>
+            </div>
+          </div>
+          <span class="text-xs font-bold text-yellow-300 bg-yellow-950/50 px-2 py-1 rounded-lg border border-yellow-800/50">${crop.cost}c</span>
+        `;
+        container.appendChild(btn);
+      });
+    }
+
+    function buySeed(cropName, crop) {
+      if (currentCoins < crop.cost) {
+        showToast("Insufficient coins!");
+        return;
+      }
+      currentCoins -= crop.cost;
+      cropSeeds[cropName] = (cropSeeds[cropName] || 0) + 2;
+      pushAction(`Purchased ${crop.emoji} ${cropName} Seeds (+2) (-${crop.cost}c)`);
+      populateSeedDropdown();
+    }
+
+    function buyMarketItem(type, cost, label) {
+      if (currentCoins < cost) {
+        showToast("Insufficient coins!");
+        return;
+      }
+      currentCoins -= cost;
+      if (type === 'water') currentWater = Math.min(200, currentWater + 50);
+      if (type === 'fertilizer') currentEnergy = Math.min(120, currentEnergy + 20);
+      if (type === 'mulch') currentHope = Math.min(100, currentHope + 10);
+      if (type === 'pesticide') {
+        unlockAchievement("locust_survivor", "Locust Survivor", "🛡️");
+        clearCalamityWarning();
+        showToast("Anti-pest shield applied! Calamity mitigated.");
+      }
+
+      pushAction(`Purchased ${label} (-${cost}c)`);
+      updateResources(currentWater, currentSeeds, currentEnergy, currentHope, currentCoins);
+    }
+
+    function loadTopic() {
+      const key = document.getElementById("topic-selector").value;
+      document.getElementById("code-editor").value = topicTemplates[key].code;
+    }
+
+    function switchTab(tab) {
+      document.getElementById("view-game").classList.toggle("hidden", tab !== "game");
+      document.getElementById("view-code").classList.toggle("hidden", tab !== "code");
+      
+      document.getElementById("tab-game").classList.toggle("bg-[#283623]", tab === "game");
+      document.getElementById("tab-game").classList.toggle("text-emerald-100", tab === "game");
+      
+      document.getElementById("tab-code").classList.toggle("bg-[#283623]", tab === "code");
+      document.getElementById("tab-code").classList.toggle("text-emerald-100", tab === "code");
+    }
+
+    function printConsole(msg) {
+      const el = document.getElementById("output-console");
+      if (el) el.innerHTML += `<br><span class="text-cyan-300">${msg}</span>`;
+    }
+
+    function showToast(msg) {
+      const toast = document.createElement("div");
+      toast.className = "fixed bottom-6 right-6 bg-emerald-900 border border-emerald-400 text-white px-4 py-2.5 rounded-xl shadow-2xl z-50 text-xs font-semibold animate-bounce";
+      toast.textContent = msg;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 2500);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,162 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;0,800;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --bg-dark: #111710;
+  --panel-bg: rgba(26, 36, 24, 0.7);
+  --panel-border: rgba(74, 105, 65, 0.3);
+  --emerald-accent: #10b981;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background-color: var(--bg-dark);
+  color: #f3f4f6;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(16, 185, 129, 0.05) 0%, transparent 45%),
+    radial-gradient(circle at 90% 80%, rgba(245, 158, 11, 0.04) 0%, transparent 45%);
+}
+
+.code-font {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.glass-panel {
+  background: var(--panel-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--panel-border);
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.45);
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(12, 18, 12, 0.6);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(52, 211, 153, 0.35);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(52, 211, 153, 0.7);
+}
+
+/* Garden Tile & Harvest Ready Glow */
+.garden-tile {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.garden-tile:hover {
+  border-color: #34d399;
+  background-color: #233321;
+  transform: translateY(-2px);
+}
+
+@keyframes harvestPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.7), inset 0 0 12px rgba(234, 179, 8, 0.3);
+    border-color: #facc15;
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(234, 179, 8, 0), inset 0 0 20px rgba(234, 179, 8, 0.6);
+    border-color: #fef08a;
+  }
+}
+
+.harvest-ready {
+  animation: harvestPulse 1.8s infinite ease-in-out;
+  background: radial-gradient(circle, rgba(234, 179, 8, 0.25) 0%, rgba(27, 37, 25, 0.9) 80%) !important;
+}
+
+/* CALAMITY ALERT WARNING STATES */
+@keyframes calamityBorderFlash {
+  0%, 100% {
+    border-color: rgba(239, 68, 68, 0.9);
+    box-shadow: 0 0 25px rgba(239, 68, 68, 0.4), inset 0 0 20px rgba(239, 68, 68, 0.2);
+  }
+  50% {
+    border-color: rgba(248, 113, 113, 0.4);
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.15), inset 0 0 5px rgba(239, 68, 68, 0.05);
+  }
+}
+
+.calamity-warning-active {
+  animation: calamityBorderFlash 1.2s infinite ease-in-out !important;
+  border-width: 2px !important;
+}
+
+/* Tree Nodes Depth Hierarchy Styling */
+.tree-node-card {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+}
+.tree-node-card:hover {
+  transform: scale(1.05);
+  border-color: #34d399;
+  box-shadow: 0 0 12px rgba(52, 211, 153, 0.4);
+}
+
+.tree-level-1 { background: #1b2e1a; border-color: #34d399; color: #a7f3d0; } /* Root */
+.tree-level-2 { background: #1e2a22; border-color: #059669; color: #6ee7b7; } /* Branch */
+.tree-level-3 { background: #1d2527; border-color: #0284c7; color: #38bdf8; } /* Parent */
+.tree-level-4 { background: #28211b; border-color: #d97706; color: #fcd34d; } /* Child */
+.tree-level-5 { background: #231d28; border-color: #c084fc; color: #e9d5ff; } /* Leaf */
+
+/* Node Traversal Highlight Animation */
+@keyframes nodeHighlight {
+  0% { transform: scale(1); box-shadow: 0 0 0 rgba(250, 204, 21, 0); }
+  50% { transform: scale(1.22); box-shadow: 0 0 22px rgba(250, 204, 21, 0.9); }
+  100% { transform: scale(1); box-shadow: 0 0 10px rgba(250, 204, 21, 0.4); }
+}
+
+.node-highlight-active {
+  animation: nodeHighlight 0.55s ease-in-out forwards;
+  border-color: #facc15 !important;
+  background-color: #3f2e04 !important;
+  color: #fef08a !important;
+  z-index: 30 !important;
+}
+
+/* Traversal Flow SVG Line Styling */
+@keyframes dashFlow {
+  to {
+    stroke-dashoffset: -20;
+  }
+}
+
+.traversal-flow-line {
+  stroke: #f59e0b;
+  stroke-width: 3px;
+  stroke-dasharray: 6 3;
+  animation: dashFlow 0.8s linear infinite;
+  filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.85));
+}
+
+/* Achievements Trophy Medal */
+.trophy-card {
+  transition: all 0.3s ease;
+}
+.trophy-card.unlocked {
+  background: linear-gradient(135deg, rgba(20, 40, 24, 0.8) 0%, rgba(30, 60, 35, 0.9) 100%);
+  border-color: #facc15;
+  box-shadow: 0 4px 15px rgba(234, 179, 8, 0.2);
+}
+.trophy-card.locked {
+  background: rgba(18, 24, 18, 0.5);
+  border-color: rgba(60, 80, 55, 0.3);
+  filter: grayscale(0.85);
+  opacity: 0.5;
+}
+
+@keyframes popUnlock {
+  0% { transform: scale(0.8); opacity: 0; }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.unlock-animated {
+  animation: popUnlock 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
