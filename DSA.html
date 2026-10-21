@@ -252,7 +252,7 @@
         <div class="border-b border-[#43533c]/40 pb-2.5 mb-3 flex flex-wrap items-center justify-between gap-2">
           <div>
             <h3 class="font-bold text-emerald-300 text-xs uppercase tracking-wider flex items-center gap-2">
-              <i data-lucide="network" class="w-4 h-4 text-emerald-400"></i> Hierarchical Tree & Traversals (Topic 4 & 7)
+              <i data-lucide="network" class="w-4 h-4 text-emerald-400"></i> Hierarchical Tree & Traversals (Topic 4, 5 & 7)
             </h3>
             <p class="text-[10px] text-emerald-400/70">Root → Crop → Stages / Needs → Leaves — Visible Flow Path Connector Line (scroll to see full tree)</p>
           </div>
@@ -340,7 +340,7 @@
 
   <!-- JAVASCRIPT LOGIC & PYODIDE BRIDGE -->
   <script>
-    const APP_VERSION = "0.6.0";
+    const APP_VERSION = "0.3.0";
     let pyodideInstance = null;
     let gardenPlants = {}; // pos -> { name, stage (1-4), ready (bool) }
     let displayActionHistory = [];
@@ -373,11 +373,10 @@
     const STAGE_EMOJIS = { 1: "🌰", 2: "🌱", 3: "🪴", 4: null };
 
     // --- CONSISTENT TREE TEMPLATE (single source of truth for the default tree) ---
-    // Every crop branch is generated from the SAME loop: Crop → [Stages, Needs] → fixed leaves.
     const TREE_CROP_ORDER = [
       ["Eggplant", "🍆"], ["Tomato", "🍅"], ["Carrot", "🥕"], ["Corn", "🌽"], ["Watermelon", "🍉"]
     ];
-    const TREE_STAGE_LEAVES = [   // emoji null = use the crop's own emoji (Mature)
+    const TREE_STAGE_LEAVES = [
       ["Seed", "🌰"], ["Sprout", "🌱"], ["Young", "🌿"], ["Mature", null], ["Ready", "⭐"]
     ];
     const TREE_NEED_LEAVES = [
@@ -493,8 +492,6 @@ print("Planted 5 distinct growth stage nodes on grid.")
       4: {
         title: "Topic 4 & 7: Hierarchical Trees & Traversal Path Lines",
         code: `# Topic 4 & 7: Hierarchical Tree Traversals (DFS vs BFS)
-# Every crop branch is built from the SAME template (Stages + Needs),
-# so the tree is always consistent and traversals read as a repeating pattern.
 from pyodide.ffi import to_js
 from js import Object
 
@@ -506,7 +503,6 @@ CROPS = [
     ("Watermelon", "🍉"),
 ]
 
-# Template: (label, emoji). emoji None -> use the crop's own emoji (Mature)
 STAGES = [("Seed", "🌰"), ("Sprout", "🌱"), ("Young", "🌿"), ("Mature", None), ("Ready", "⭐")]
 NEEDS = [("Water", "💧"), ("Fertilizer", "🌾"), ("Anti-Pest", "🛡️")]
 
@@ -529,13 +525,93 @@ tree_data = make_node("node-root", "🌱", "Garden Root", [
     build_crop_branch(name, emoji) for name, emoji in CROPS
 ])
 
-# Send the Python dict to the JS tree renderer, then trace it
 renderTree(to_js(tree_data, dict_converter=Object.fromEntries))
 runTraversal("preorder")
 print("Built a consistent tree from one template: 5 crops x (Stages + Needs).")
 `
       },
-      5: { title: "Topic 5: Binary Search Trees (BST)", code: `# Topic 5: BST Operations\nprint("BST Module active.")` },
+      5: { 
+        title: "Topic 5: Binary Search Trees (BST)", 
+        code: `# Topic 5: Binary Search Tree (BST) Operations
+from pyodide.ffi import to_js
+from js import Object, renderTree
+
+class BSTNode:
+    def __init__(self, price, name, emoji):
+        self.price = price
+        self.name = name
+        self.emoji = emoji
+        self.left = None
+        self.right = None
+
+    def to_dict(self):
+        children = []
+        if self.left:
+            children.append(self.left.to_dict())
+        if self.right:
+            children.append(self.right.to_dict())
+        return {
+            "id": f"bst-{self.price}",
+            "emoji": self.emoji,
+            "label": f"{self.name} ({self.price}c)",
+            "children": children
+        }
+
+class BinarySearchTree:
+    def __init__(self):
+        self.root = None
+
+    def insert(self, price, name, emoji):
+        new_node = BSTNode(price, name, emoji)
+        if not self.root:
+            self.root = new_node
+            return
+        curr = self.root
+        while True:
+            if price < curr.price:
+                if curr.left is None:
+                    curr.left = new_node
+                    break
+                curr = curr.left
+            else:
+                if curr.right is None:
+                    curr.right = new_node
+                    break
+                curr = curr.right
+
+    def search(self, price):
+        curr = self.root
+        while curr:
+            if curr.price == price:
+                return curr
+            elif price < curr.price:
+                curr = curr.left
+            else:
+                curr = curr.right
+        return None
+
+bst = BinarySearchTree()
+# Insert crops ordered by Market Cost to build a Binary Search Tree
+crops = [
+    (20, "Eggplant", "🍆"),
+    (10, "Carrot", "🥕"),
+    (15, "Tomato", "🍅"),
+    (25, "Corn", "🌽"),
+    (30, "Watermelon", "🍉")
+]
+
+for price, name, emoji in crops:
+    bst.insert(price, name, emoji)
+
+# Visually render BST on Tree Panel UI
+renderTree(to_js(bst.root.to_dict(), dict_converter=Object.fromEntries))
+
+print("Binary Search Tree (BST) successfully built and rendered!")
+found = bst.search(15)
+if found:
+    print(f"BST Search: Found {found.emoji} {found.name} costing {found.price} coins.")
+`
+      },
       6: { title: "Topic 6: Hash Tables & Collisions", code: `# Topic 6: Hash Tables\nprint("Hash Table Module active.")` },
       7: { title: "Topic 7: Graph Foundations (DFS/BFS)", code: `# Topic 7: Graph Traversal\nrunTraversal("bfs")` },
       8: { title: "Topic 8: Sorting Algorithms", code: `# Topic 8: Crop Sorting\nprint("Sorting Module active.")` },
@@ -710,13 +786,11 @@ sys.stdout = ConsoleRedirect()
         if (idx < sequence.length) {
           const node = sequence[idx];
 
-          // 1. Highlight Node Card
           if (node.domCard) {
             node.domCard.classList.add("node-highlight-active");
             setTimeout(() => node.domCard.classList.remove("node-highlight-active"), 750);
           }
 
-          // 2. Draw Traversal Flow Line String from Prev Node to Current Node
           if (idx > 0 && wrapper && pathGroup) {
             const prevNode = sequence[idx - 1];
             if (prevNode.domCard && node.domCard) {
@@ -741,7 +815,6 @@ sys.stdout = ConsoleRedirect()
           clearInterval(interval);
           isTraversing = false;
 
-          // Format Result Text
           const formattedSeq = sequence.map(n => `${n.emoji} ${n.label}`).join(" → ");
           const familyTag = orderType === "bfs" ? "BFS (Queue Level Order)" : `DFS (${orderType.charAt(0).toUpperCase() + orderType.slice(1)})`;
           
@@ -770,7 +843,6 @@ sys.stdout = ConsoleRedirect()
       const svgNS = "http://www.w3.org/2000/svg";
       const wrapper = document.createElement("div");
       wrapper.id = "tree-wrapper";
-      // w-max + m-auto: wide tree scrolls inside the container and is centered when it fits
       wrapper.className = "relative p-4 w-max m-auto min-h-[220px]";
 
       const svg = document.createElementNS(svgNS, "svg");
@@ -787,7 +859,6 @@ sys.stdout = ConsoleRedirect()
       svg.appendChild(traversalGroup);
       wrapper.appendChild(svg);
 
-      // Recursive DOM Node Builder (depth classes 1 to 5; compact styling for leaves)
       function buildDOMNode(node, depth = 1) {
         const isLeaf = !node.children || node.children.length === 0;
         const nodeEl = document.createElement("div");
@@ -874,7 +945,6 @@ sys.stdout = ConsoleRedirect()
         select.appendChild(option);
       });
 
-      // Update total seeds sum
       currentSeeds = Object.values(cropSeeds).reduce((a, b) => a + b, 0);
       updateResources(currentWater, currentSeeds, currentEnergy, currentHope, currentCoins);
     }
@@ -977,7 +1047,6 @@ sys.stdout = ConsoleRedirect()
           pushAction(`Marked ${plant.name} as Harvest-Ready!`);
         }
       } else {
-        // PLANTING LOGIC: Check crop stock
         if (!selectedCrop) return;
         const stock = cropSeeds[selectedCrop] || 0;
 
@@ -1132,7 +1201,6 @@ sys.stdout = ConsoleRedirect()
         container.appendChild(div);
       });
 
-      // Auto-trigger calamity warning if front event contains severe weather
       const frontEvent = events[0];
       if (frontEvent && (frontEvent.includes("Locust") || frontEvent.includes("Heat Wave") || frontEvent.includes("Acid Rain"))) {
         triggerCalamityWarning(frontEvent);
