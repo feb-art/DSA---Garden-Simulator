@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Noto+Color+Emoji&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;0,800;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
 :root {
@@ -160,3 +161,50 @@ body {
 .unlock-animated {
   animation: popUnlock 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
+
+/* ===================== PASTEL GAME THEME ===================== */
+:root{--cream:#fff7f0;--card:#fffaf5;--ink:#5b4b6e;--line:#f2d3e3;--mint:#bdebd6;--sky:#cfe6ff;--lav:#e3d8ff;--peach:#ffdcc4;--butter:#fff1a8;--pink:#ffd3e2}
+body{font-family:'Fredoka','Noto Color Emoji',sans-serif!important;color:var(--ink)!important;
+ background:radial-gradient(circle at 8% 12%,#ffe3ef 0,transparent 40%),radial-gradient(circle at 92% 18%,#d8ecff 0,transparent 42%),radial-gradient(circle at 50% 100%,#dff6e8 0,transparent 45%),var(--cream)!important}
+.code-font,textarea,#output-console{font-family:'JetBrains Mono','Noto Color Emoji',monospace!important}
+h1{font-weight:700!important;text-shadow:0 3px 0 #fff,0 5px 0 #f6c9de}
+h2,h3{font-weight:600}
+.glass-panel{background:rgba(255,255,255,.75)!important;border:2px solid var(--line)!important;border-radius:1.25rem!important;box-shadow:0 5px 0 rgba(236,200,225,.6),0 14px 26px -14px rgba(150,110,170,.35)!important}
+/* remap the old dark Tailwind colors to pastel */
+[class*="bg-[#"],[class*="bg-emerald-9"],[class*="bg-yellow-950"],[class*="bg-amber-950"],[class*="bg-black"]{background-color:var(--card)!important}
+[class*="bg-rose-9"]{background-color:#ffc9d4!important}
+textarea,#output-console{background:#fbf8ff!important;color:var(--ink)!important;border:2px solid var(--lav)!important}
+[class*="hover:bg-"]:hover{background-color:#ffeaf2!important}
+.bg-emerald-600{background-color:#a8e6cf!important}
+[class*="text-emerald-"]{color:#3f8f73!important}
+[class*="text-yellow-"],[class*="text-amber-"]{color:#b8801a!important}
+[class*="text-rose-"],[class*="text-red-"]{color:#d9627b!important}
+[class*="text-blue-"],[class*="text-cyan-"]{color:#4a86b8!important}
+.text-white,.text-black{color:var(--ink)!important}
+[class*="border-emerald"],[class*="border-[#"]{border-color:var(--line)!important}
+[class*="border-yellow-"],[class*="border-amber-"]{border-color:#f3d28a!important}
+[class*="border-rose-"]{border-color:#f5aab9!important}
+select{background:var(--card)!important;color:var(--ink)!important;border:2px solid var(--line)!important;border-radius:.9rem!important}
+/* chunky game buttons */
+button{border-radius:.9rem;font-weight:600;box-shadow:0 3px 0 rgba(120,90,140,.2);transition:transform .08s,box-shadow .08s}
+button:hover{transform:translateY(-1px)}
+button:active{transform:translateY(3px);box-shadow:none}
+/* soil tiles + bouncy emojis */
+.garden-tile{background:#fde8cf!important;border:2px solid #efcaa0!important;border-radius:1.1rem!important;box-shadow:0 4px 0 #e8c196}
+.garden-tile:hover{background:#ffeed9!important;border-color:#f5b97a!important}
+.garden-tile>span.text-2xl{font-size:2rem!important;line-height:1;filter:drop-shadow(0 3px 2px rgba(120,80,40,.25));animation:sway 2.6s ease-in-out infinite}
+@keyframes sway{0%,100%{transform:rotate(-4deg) translateY(0)}50%{transform:rotate(4deg) translateY(-3px)}}
+.harvest-ready{background:radial-gradient(circle,#fff6b8 0,#ffe3a6 85%)!important}
+/* tree nodes */
+.tree-level-1{background:#d7f5e6;border-color:#8fd9b8;color:#2f7a5c}
+.tree-level-2{background:#d9ecff;border-color:#9cc9f5;color:#3a73a8}
+.tree-level-3{background:#e8dcff;border-color:#c3a9f2;color:#6a4fa3}
+.tree-level-4{background:#ffe9d6;border-color:#f5bf94;color:#a8662f}
+.tree-level-5{background:#ffe0ea;border-color:#f5a9c1;color:#b4496b}
+.node-highlight-active{background-color:var(--butter)!important;color:#8a5a00!important;border-color:#f5c542!important}
+.trophy-card.unlocked{background:linear-gradient(135deg,#fff6c9,#ffe3ee)!important;border-color:#f5c542}
+.trophy-card.locked{background:#f6f0ea!important;opacity:.65}
+.calamity-warning-active{border-color:#ff8fa3!important}
+::-webkit-scrollbar-track{background:#fbeff5}::-webkit-scrollbar-thumb{background:#f2b5cf}::-webkit-scrollbar-thumb:hover{background:#e895b9}
+#audio-dock{position:fixed;left:14px;bottom:14px;display:flex;gap:8px;z-index:60}
+#audio-dock button{width:44px;height:44px;font-size:1.3rem;background:#fff;border:2px solid var(--line)}

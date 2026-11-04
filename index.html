@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Garden Simulator — DSA Sanctuary</title>
+  
+  <!-- Approved Tech Stack -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="min-h-full flex flex-col justify-between p-3 md:p-5">
+
+  <!-- TOP BAR -->
+  <header class="w-full max-w-[1650px] mx-auto flex flex-wrap items-center justify-between gap-4 mb-4 pb-3 border-b border-[#3b4c34]/50">
+    <div class="flex items-center gap-3">
+      <div class="p-2.5 bg-emerald-950/80 border border-emerald-700/50 rounded-2xl text-emerald-400">
+        <i data-lucide="sprout" class="w-7 h-7"></i>
+      </div>
+      <div>
+        <div class="flex items-center gap-2.5">
+          <h1 class="text-xl md:text-2xl font-black tracking-tight text-emerald-100">Garden Simulator</h1>
+          <span class="text-[10px] font-bold tracking-widest text-emerald-300 bg-emerald-900/60 border border-emerald-700/50 px-2 py-0.5 rounded-md uppercase">
+            PART OF THE GAME
+          </span>
+          <span id="version-badge" class="text-[10px] font-bold text-amber-400 bg-amber-950/40 border border-amber-800/50 px-2 py-0.5 rounded-md"></span>
+        </div>
+        <p class="text-xs text-emerald-400/80 font-medium">Data Structures & Algorithms Educational Simulation</p>
+      </div>
+    </div>
+
+    <!-- Day Counter & Score Indicators -->
+    <div class="flex items-center gap-3">
+      <div class="glass-panel px-4 py-1.5 rounded-xl flex flex-col items-end border-emerald-800/40">
+        <span class="text-[10px] text-emerald-400 uppercase tracking-widest font-bold">DAY</span>
+        <span class="text-lg font-black text-white" id="day-counter">1</span>
+      </div>
+      <div class="glass-panel px-4 py-1.5 rounded-xl flex flex-col items-end border-emerald-800/40">
+        <span class="text-[10px] text-emerald-400 uppercase tracking-widest font-bold">STEWARDSHIP</span>
+        <span class="text-lg font-black text-emerald-300" id="stewardship-counter">100%</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN LAYOUT GRID -->
+  <main class="w-full max-w-[1650px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 flex-grow">
+
+    <!-- LEFT COLUMN: MARKET & RESOURCE STORAGE -->
+    <section class="lg:col-span-3 flex flex-col gap-4">
+      
+      <!-- MARKET PANEL -->
+      <div class="glass-panel rounded-2xl p-4 flex flex-col">
+        <div class="border-b border-[#43533c]/40 pb-2.5 mb-3 flex items-center justify-between">
+          <h2 class="text-sm font-bold text-emerald-200 flex items-center gap-2">
+            <i data-lucide="shopping-bag" class="w-4 h-4 text-emerald-400"></i> Market (Input Stock)
+          </h2>
+          <span class="text-xs text-yellow-300 font-extrabold" id="coins-text">100 Coins</span>
+        </div>
+
+        <p class="text-[11px] text-emerald-300/70 mb-3 leading-snug">
+          Purchase real agricultural inputs required by crops to grow.
+        </p>
+
+        <div class="space-y-2 overflow-y-auto max-h-[360px] pr-1">
+          <div class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">Crop Seeds (+2 Stock)</div>
+          <div id="market-seeds-list" class="grid grid-cols-1 gap-1.5"></div>
+
+          <div class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider mt-3">Gardening Supplies</div>
+          
+          <button onclick="buyMarketItem('water', 10, 'Water Top-up (+50L)')" class="w-full p-2 bg-[#1b251a] hover:bg-[#253324] border border-emerald-800/50 rounded-xl flex items-center justify-between transition text-left">
+            <div class="flex items-center gap-2">
+              <span class="text-lg">💧</span>
+              <div>
+                <div class="text-xs font-semibold text-emerald-100">Water Reserve Top-up</div>
+                <div class="text-[10px] text-emerald-400/70">+50L Water Storage</div>
+              </div>
+            </div>
+            <span class="text-xs font-bold text-yellow-300 bg-yellow-950/50 px-2 py-1 rounded-lg border border-yellow-800/50">10c</span>
+          </button>
+
+          <button onclick="buyMarketItem('fertilizer', 15, 'Organic Fertilizer (+20 Energy)')" class="w-full p-2 bg-[#1b251a] hover:bg-[#253324] border border-emerald-800/50 rounded-xl flex items-center justify-between transition text-left">
+            <div class="flex items-center gap-2">
+              <span class="text-lg">🧪</span>
+              <div>
+                <div class="text-xs font-semibold text-emerald-100">Organic Fertilizer</div>
+                <div class="text-[10px] text-emerald-400/70">+20 Solar/Growth Energy</div>
+              </div>
+            </div>
+            <span class="text-xs font-bold text-yellow-300 bg-yellow-950/50 px-2 py-1 rounded-lg border border-yellow-800/50">15c</span>
+          </button>
+
+          <button onclick="buyMarketItem('pesticide', 20, 'Anti-Pest Spray')" class="w-full p-2 bg-[#1b251a] hover:bg-[#253324] border border-emerald-800/50 rounded-xl flex items-center justify-between transition text-left">
+            <div class="flex items-center gap-2">
+              <span class="text-lg">🛡️</span>
+              <div>
+                <div class="text-xs font-semibold text-emerald-100">Anti-Pest Treatment</div>
+                <div class="text-[10px] text-emerald-400/70">Protects crops from Queue pests</div>
+              </div>
+            </div>
+            <span class="text-xs font-bold text-yellow-300 bg-yellow-950/50 px-2 py-1 rounded-lg border border-yellow-800/50">20c</span>
+          </button>
+
+          <button onclick="buyMarketItem('mulch', 12, 'Eco Mulch Bark (+10 Hope)')" class="w-full p-2 bg-[#1b251a] hover:bg-[#253324] border border-emerald-800/50 rounded-xl flex items-center justify-between transition text-left">
+            <div class="flex items-center gap-2">
+              <span class="text-lg">🍂</span>
+              <div>
+                <div class="text-xs font-semibold text-emerald-100">Eco Mulch Bark</div>
+                <div class="text-[10px] text-emerald-400/70">Soil moisture retention / +10 Hope</div>
+              </div>
+            </div>
+            <span class="text-xs font-bold text-yellow-300 bg-yellow-950/50 px-2 py-1 rounded-lg border border-yellow-800/50">12c</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- RESOURCE STORAGE PANEL -->
+      <div class="glass-panel rounded-2xl p-4">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-emerald-300 border-b border-[#43533c]/30 pb-2 mb-3 flex items-center gap-2">
+          <i data-lucide="database" class="w-4 h-4 text-emerald-400"></i> Resource Storage
+        </h2>
+        <div class="space-y-3">
+          <div>
+            <div class="flex justify-between text-xs font-semibold mb-1">
+              <span class="flex items-center gap-1.5 text-blue-300">💧 Water Reserves</span>
+              <span id="water-text" class="text-blue-200">100/200 L</span>
+            </div>
+            <div class="w-full bg-[#172016] h-2 rounded-full overflow-hidden border border-emerald-900/50">
+              <div id="water-bar" class="bg-gradient-to-r from-blue-600 to-cyan-400 h-full rounded-full transition-all duration-300" style="width: 50%"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs font-semibold mb-1">
+              <span class="flex items-center gap-1.5 text-emerald-300">🌱 Total Seed Stock</span>
+              <span id="seeds-text" class="text-emerald-200">10/100</span>
+            </div>
+            <div class="w-full bg-[#172016] h-2 rounded-full overflow-hidden border border-emerald-900/50">
+              <div id="seeds-bar" class="bg-gradient-to-r from-emerald-600 to-lime-400 h-full rounded-full transition-all duration-300" style="width: 10%"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs font-semibold mb-1">
+              <span class="flex items-center gap-1.5 text-amber-300">☀️ Solar Energy</span>
+              <span id="energy-text" class="text-amber-200">60/120 Wh</span>
+            </div>
+            <div class="w-full bg-[#172016] h-2 rounded-full overflow-hidden border border-emerald-900/50">
+              <div id="energy-bar" class="bg-gradient-to-r from-amber-600 to-yellow-400 h-full rounded-full transition-all duration-300" style="width: 50%"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs font-semibold mb-1">
+              <span class="flex items-center gap-1.5 text-rose-300">💖 Community Hope</span>
+              <span id="hope-text" class="text-rose-200">50/100</span>
+            </div>
+            <div class="w-full bg-[#172016] h-2 rounded-full overflow-hidden border border-emerald-900/50">
+              <div id="hope-bar" class="bg-gradient-to-r from-rose-600 to-pink-400 h-full rounded-full transition-all duration-300" style="width: 50%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CENTER COLUMN: TABBED SANCTUARY/EDITOR & HIERARCHICAL TREE PANEL -->
+    <section class="lg:col-span-6 flex flex-col gap-4 min-w-0">
+      
+      <!-- TAB NAVIGATION -->
+      <div class="flex items-center justify-between bg-[#182217] p-1.5 rounded-xl border border-emerald-800/40">
+        <div class="flex items-center gap-2">
+          <button onclick="switchTab('game')" id="tab-game" class="px-4 py-2 rounded-lg text-xs font-extrabold bg-[#283623] text-emerald-100 flex items-center gap-2 transition">
+            <i data-lucide="flower-2" class="w-4 h-4"></i> Interactive Sanctuary
+          </button>
+          <button onclick="switchTab('code')" id="tab-code" class="px-4 py-2 rounded-lg text-xs font-extrabold text-emerald-400/80 hover:text-emerald-100 flex items-center gap-2 transition">
+            <i data-lucide="code" class="w-4 h-4"></i> Student Code Editor
+          </button>
+        </div>
+        <div id="tab-status-indicator" class="text-[11px] text-emerald-400/70 font-semibold pr-2 hidden md:block">
+          Linked Pyodide Engine Active
+        </div>
+      </div>
+
+      <!-- VIEW 1: INTERACTIVE SANCTUARY (GARDEN GRID) -->
+      <div id="view-game" class="glass-panel rounded-2xl p-5 flex flex-col min-h-[380px] relative transition-all duration-300">
+        
+        <!-- CALAMITY RED WARNING BANNER -->
+        <div id="calamity-alert-banner" class="hidden mb-3 p-2.5 bg-rose-950/90 border border-rose-600/80 rounded-xl flex items-center justify-between text-xs text-rose-200 shadow-lg animate-pulse">
+          <div class="flex items-center gap-2.5 font-bold">
+            <span class="text-xl">⚠️</span>
+            <span id="calamity-alert-text">CALAMITY ALERT: Heavy Pest Risk incoming!</span>
+          </div>
+          <button onclick="clearCalamityWarning()" class="text-[10px] bg-rose-900 hover:bg-rose-800 text-rose-200 px-2 py-1 rounded-lg border border-rose-500/60 font-semibold transition">
+            Dismiss Warning
+          </button>
+        </div>
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <div>
+            <h2 class="text-base font-bold text-white flex items-center gap-2">
+              Sanctuary Garden Grid
+            </h2>
+            <p class="text-xs text-emerald-300/80">Click soil tiles to advance growth stages or harvest mature crops (⭐ Harvest Ready).</p>
+          </div>
+          
+          <!-- SEED BAG DROPDOWN WITH PER-CROP STOCK -->
+          <div class="flex items-center gap-2 bg-[#141c13] p-1.5 rounded-xl border border-emerald-800/50">
+            <span class="text-xs text-emerald-300 font-semibold pl-1">Seed Bag:</span>
+            <select id="crop-selector" class="bg-[#1e2a1b] border border-emerald-700/70 text-emerald-100 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-400">
+            </select>
+          </div>
+        </div>
+
+        <!-- 5x5 Soil Matrix Grid -->
+        <div class="flex-1 flex items-center justify-center p-2">
+          <div id="garden-grid" class="grid grid-cols-5 gap-2.5 w-full max-w-[440px]"></div>
+        </div>
+      </div>
+
+      <!-- VIEW 2: STUDENT CODE EDITOR -->
+      <div id="view-code" class="glass-panel rounded-2xl p-5 flex-col flex-grow hidden">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="font-bold text-white flex items-center gap-2 text-sm">
+            <i data-lucide="terminal" class="w-4 h-4 text-emerald-400"></i> Student Code Editor (Pyodide Lab)
+          </h2>
+          <span class="text-[11px] text-emerald-400/80 font-mono">Python 3.11</span>
+        </div>
+
+        <div class="mb-3">
+          <label class="block text-[11px] font-bold text-emerald-300 uppercase tracking-wider mb-1">Select DSA Topic Template:</label>
+          <select id="topic-selector" onchange="loadTopic()" class="w-full bg-[#131b12] border border-emerald-800 rounded-xl px-3 py-2 text-xs text-emerald-100 focus:outline-none focus:border-emerald-500">
+          </select>
+        </div>
+
+        <div class="relative flex-1 min-h-[220px] flex flex-col">
+          <textarea id="code-editor" class="w-full flex-1 bg-[#0b100a] border border-emerald-900/80 rounded-xl p-3.5 code-font text-xs text-emerald-200 font-medium leading-relaxed focus:outline-none focus:border-emerald-500 resize-none" spellcheck="false"></textarea>
+        </div>
+
+        <button onclick="runPythonCode()" class="mt-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg transition">
+          <i data-lucide="play" class="w-4 h-4"></i> Run Python Code
+        </button>
+
+        <div class="mt-3">
+          <div class="text-[10px] uppercase font-bold text-emerald-400 mb-1">Console Output (stdout):</div>
+          <div id="output-console" class="bg-[#070a07] border border-emerald-950 rounded-xl p-3 text-[11px] h-24 overflow-auto code-font whitespace-pre-wrap text-emerald-300/90"></div>
+        </div>
+      </div>
+
+      <!-- HIERARCHICAL PANEL (4-Level Consistent Tree + DFS / BFS Traversals + Path Connector String) -->
+      <div id="hierarchical-panel" class="glass-panel rounded-2xl p-4 flex flex-col min-h-[360px]">
+        <div class="border-b border-[#43533c]/40 pb-2.5 mb-3 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 class="font-bold text-emerald-300 text-xs uppercase tracking-wider flex items-center gap-2">
+              <i data-lucide="network" class="w-4 h-4 text-emerald-400"></i> Hierarchical Tree & Traversals (Topic 4, 5 & 7)
+            </h3>
+            <p class="text-[10px] text-emerald-400/70">Root → Crop → Stages / Needs → Leaves — Visible Flow Path Connector Line (scroll to see full tree)</p>
+          </div>
+          
+          <!-- GROUPED TRAVERSAL BUTTONS -->
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- DFS Group -->
+            <div class="flex items-center gap-1 bg-[#142013] p-1 rounded-xl border border-emerald-800/60">
+              <span class="text-[9px] font-black uppercase text-emerald-400 px-1.5 tracking-wider">DFS</span>
+              <button onclick="runTraversal('preorder')" class="px-2 py-1 bg-[#1b2a1a] hover:bg-[#283d27] border border-emerald-700/60 rounded-lg text-[10px] font-semibold text-emerald-200 transition">
+                Preorder
+              </button>
+              <button onclick="runTraversal('inorder')" class="px-2 py-1 bg-[#1b2a1a] hover:bg-[#283d27] border border-emerald-700/60 rounded-lg text-[10px] font-semibold text-emerald-200 transition">
+                Inorder
+              </button>
+              <button onclick="runTraversal('postorder')" class="px-2 py-1 bg-[#1b2a1a] hover:bg-[#283d27] border border-emerald-700/60 rounded-lg text-[10px] font-semibold text-emerald-200 transition">
+                Postorder
+              </button>
+            </div>
+
+            <!-- BFS Group -->
+            <div class="flex items-center gap-1 bg-[#1f1b13] p-1 rounded-xl border border-amber-800/60">
+              <span class="text-[9px] font-black uppercase text-amber-400 px-1.5 tracking-wider">BFS</span>
+              <button onclick="runTraversal('bfs')" class="px-2 py-1 bg-[#2b2216] hover:bg-[#3d301f] border border-amber-700/60 rounded-lg text-[10px] font-semibold text-amber-200 transition">
+                Level Order (Queue)
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Rendered Tree Canvas (scrolls horizontally; wrapper is centered with m-auto so nothing is clipped) -->
+        <div id="tree-container" class="flex-1 bg-[#0d140c]/90 border border-emerald-900/50 rounded-xl relative overflow-auto p-4 min-h-[230px] flex">
+          <p class="text-xs text-emerald-400/50 italic m-auto">Executing renderTree(tree_data)...</p>
+        </div>
+
+        <!-- Traversal Output Line (wraps + scrolls so long sequences stay readable) -->
+        <div id="traversal-output-bar" class="mt-2.5 p-2.5 bg-[#080d07] border border-emerald-900/70 rounded-xl text-xs font-mono max-h-24 overflow-y-auto">
+          <span id="traversal-result-text" class="text-emerald-300/90 break-words">Select or run a traversal method above to view sequence...</span>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- RIGHT COLUMN: QUEUE, STACK, & ACHIEVEMENTS COLLECTION -->
+    <section class="lg:col-span-3 flex flex-col gap-4">
+      
+      <!-- QUEUE PANEL (FIFO Events — Reused for BFS Queue Concept) -->
+      <div id="climate-queue-panel" class="glass-panel rounded-2xl p-4 flex flex-col">
+        <h3 class="font-bold text-xs uppercase tracking-wider text-amber-300 mb-2 flex items-center gap-2">
+          <i data-lucide="cloud-rain" class="w-4 h-4 text-amber-400"></i> Climate / Event Queue (FIFO)
+        </h3>
+        <p class="text-[10px] text-emerald-300/70 mb-2">First-In, First-Out queue (powers BFS level traversal).</p>
+        <div id="climate-queue" class="space-y-2 text-xs max-h-[150px] overflow-y-auto pr-1"></div>
+      </div>
+
+      <!-- STACK PANEL (LIFO Action History) -->
+      <div id="stack-panel" class="glass-panel rounded-2xl p-4 flex-1 flex flex-col">
+        <h3 class="font-bold text-xs uppercase tracking-wider text-emerald-300 mb-2 flex items-center gap-2">
+          <i data-lucide="layers" class="w-4 h-4 text-emerald-400"></i> Action History (Stack - LIFO)
+        </h3>
+        <div id="action-stack" class="flex-1 space-y-1.5 text-xs overflow-y-auto max-h-[160px] pr-1 mb-2.5"></div>
+        
+        <button onclick="triggerUndo()" class="w-full bg-[#243321] hover:bg-[#2d4029] text-emerald-200 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 border border-emerald-800/60 transition">
+          <i data-lucide="undo-2" class="w-3.5 h-3.5"></i> Undo Action (Stack Pop)
+        </button>
+      </div>
+
+      <!-- ACHIEVEMENTS TROPHY CASE PANEL -->
+      <div id="achievements-panel" class="glass-panel rounded-2xl p-4">
+        <div class="border-b border-[#43533c]/40 pb-2 mb-2.5 flex items-center justify-between">
+          <h3 class="font-bold text-xs uppercase tracking-wider text-yellow-300 flex items-center gap-2">
+            <i data-lucide="trophy" class="w-4 h-4 text-yellow-400"></i> My Collection (Trophy Case)
+          </h3>
+          <span id="trophy-count" class="text-[10px] font-bold text-yellow-400 bg-yellow-950/60 px-2 py-0.5 rounded-full border border-yellow-800/60">0/5 Medals</span>
+        </div>
+        
+        <p class="text-[10px] text-emerald-300/70 mb-2.5">Collectible certificates & badges earned from Python game milestones.</p>
+        
+        <!-- Trophy Grid Showcase -->
+        <div id="achievements-trophy-grid" class="grid grid-cols-1 gap-2 max-h-[240px] overflow-y-auto pr-1"></div>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- JAVASCRIPT LOGIC & PYODIDE BRIDGE -->
+  <script src="js/config.js"></script>
+  <script src="js/achievements.js"></script>
+  <script src="js/topics.js"></script>
+  <script src="js/resources.js"></script>
+  <script src="js/garden.js"></script>
+  <script src="js/tree.js"></script>
+  <script src="js/market.js"></script>
+  <script src="js/pyodide-bridge.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/sound.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
