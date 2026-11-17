@@ -270,7 +270,42 @@ for r in range(10):
 print("size", table.size, "| plants", table.count, "| load %.2f" % (table.count / table.size), "| longest chain", table.longest_chain())
 `
   },
-  7: { title: "Topic 7: Graph Foundations (DFS/BFS)", code: `# Topic 7: Graph Traversal\nrunTraversal("bfs")` },
+  7: {
+    title: "Topic 7: Graph Foundations (BFS/DFS)",
+    code: `import json
+from collections import deque
+# Topic 7: Graph Foundations + BFS/DFS (opens the Path Explorer)
+# The garden map: nodes = garden spots, edges = paths (number = walking/watering distance)
+NODES = {"Gate": [10, 50], "Well": [35, 15], "Greenhouse": [35, 85],
+         "Pond": [65, 15], "Barn": [65, 85], "Market": [90, 50]}
+EDGES = [("Gate", "Well", 4), ("Gate", "Greenhouse", 2), ("Well", "Greenhouse", 1), ("Well", "Pond", 5),
+         ("Greenhouse", "Barn", 3), ("Pond", "Market", 2), ("Barn", "Market", 6), ("Pond", "Barn", 8)]
+graph = {n: [] for n in NODES}                 # adjacency LIST: node -> [(neighbor, distance), ...]
+for a, b, w in EDGES:
+    graph[a].append((b, w))
+    graph[b].append((a, w))                    # undirected: add both directions
+
+# ==== WRITE YOUR CODE HERE ====
+def explore(algo, start="Gate"):
+    """BFS uses a QUEUE (FIFO: popleft). DFS uses a STACK (LIFO: pop). Returns steps for the visualizer."""
+    frontier, visited, steps = deque([start]), [], []
+    seen = {start}
+    while frontier:
+        node = frontier.popleft() if algo == "bfs" else frontier.pop()
+        visited.append(node)
+        for nb, w in sorted(graph[node], reverse=(algo == "dfs")):
+            if nb not in seen:                  # visit each spot only once
+                seen.add(nb)
+                frontier.append(nb)
+        steps.append({"node": node, "frontier": list(frontier), "visited": list(visited)})
+    return steps
+
+for algo in ("bfs", "dfs"):
+    print(algo.upper(), "order:", " -> ".join(s["node"] for s in explore(algo)))
+openExplorer(json.dumps({"nodes": NODES, "edges": EDGES}), json.dumps(explore("bfs")), "BFS")
+pushAction("Explored the garden graph (BFS and DFS)")
+`
+  },
   8: {
     title: "Topic 8: Sorting Algorithms (Insertion & Quick Sort)",
     code: `# Topic 8: Sorting the crop inventory (Insertion Sort) and the leaderboard (Quick Sort)
@@ -337,7 +372,150 @@ for rank, (name, pts) in enumerate(board, 1):
 pushAction("Ranked leaderboard (Quick Sort): #1 " + board[0][0] + " with " + str(board[0][1]))
 `
   },
-  9: { title: "Topic 9: Searching Algorithms", code: `# Topic 9: Crop Search\nprint("Searching Module active.")` },
-  10: { title: "Topic 10: Dynamic Optimization", code: `# Topic 10: Dynamic Paradigms\nprint("Optimization Module active.")` },
-  11: { title: "Topic 11: Dynamic Programming", code: `# Topic 11: DP Yield Calculation\nprint("DP Module active.")` }
+  9: {
+    title: "Topic 9: Searching (Linear vs Binary)",
+    code: `# Topic 9: Linear Search vs Binary Search on the market price list
+prices = [("Carrot", 10), ("Tomato", 15), ("Eggplant", 20), ("Corn", 25), ("Watermelon", 30)]  # SORTED by price
+
+def linear_search(items, target):               # O(n): check one by one
+    for i, (name, p) in enumerate(items):
+        if p == target:
+            return i, i + 1                     # (index, comparisons)
+    return -1, len(items)
+
+def binary_search(items, target):               # O(log n): needs SORTED data, halve the range each time
+    lo, hi, steps = 0, len(items) - 1, 0
+    while lo <= hi:
+        mid = (lo + hi) // 2
+        steps += 1
+        if items[mid][1] == target:
+            return mid, steps
+        if items[mid][1] < target:
+            lo = mid + 1
+        else:
+            hi = mid - 1
+    return -1, steps
+
+# ==== WRITE YOUR CODE HERE ====
+for target in (25, 30, 99):
+    li, lc = linear_search(prices, target)
+    bi, bc = binary_search(prices, target)
+    print(f"price {target}c -> linear: {lc} comparisons | binary: {bc} comparisons")
+
+big = [("crop" + str(i), i * 5) for i in range(1000)]     # 1000 sorted prices
+print("1000 items, worst case -> linear:", linear_search(big, 4995)[1], "| binary:", binary_search(big, 4995)[1])
+
+i, n = binary_search(prices, 25)                          # show the found crop on the garden grid
+addPlantToGrid(i, prices[i][0])
+pushAction("Binary search found " + prices[i][0] + " in " + str(n) + " steps")
+`
+  },
+  10: {
+    title: "Topic 10: Dijkstra & Greedy",
+    code: `import json, heapq
+# Topic 10: Dijkstra (shortest watering path) + Greedy (best crop per free plot)
+# The garden map: nodes = garden spots, edges = paths (number = walking/watering distance)
+NODES = {"Gate": [10, 50], "Well": [35, 15], "Greenhouse": [35, 85],
+         "Pond": [65, 15], "Barn": [65, 85], "Market": [90, 50]}
+EDGES = [("Gate", "Well", 4), ("Gate", "Greenhouse", 2), ("Well", "Greenhouse", 1), ("Well", "Pond", 5),
+         ("Greenhouse", "Barn", 3), ("Pond", "Market", 2), ("Barn", "Market", 6), ("Pond", "Barn", 8)]
+graph = {n: [] for n in NODES}                 # adjacency LIST: node -> [(neighbor, distance), ...]
+for a, b, w in EDGES:
+    graph[a].append((b, w))
+    graph[b].append((a, w))                    # undirected: add both directions
+
+# ==== WRITE YOUR CODE HERE ====
+def explore(algo="dijkstra", start="Well"):
+    """Dijkstra: always expand the closest unvisited spot (a priority queue / min-heap)."""
+    dist = {n: float("inf") for n in graph}
+    dist[start] = 0
+    heap, done, steps = [(0, start)], [], []
+    while heap:
+        d, node = heapq.heappop(heap)
+        if node in done:
+            continue
+        done.append(node)
+        for nb, w in graph[node]:
+            if d + w < dist[nb]:                # found a shorter route to nb
+                dist[nb] = d + w
+                heapq.heappush(heap, (dist[nb], nb))
+        steps.append({"node": node, "frontier": [n + "(" + str(x) + ")" for x, n in sorted(heap)],
+                      "visited": list(done), "dist": {k: v for k, v in dist.items() if v != float("inf")}})
+    return steps
+
+steps = explore()
+print("Shortest watering distance from the Well:", steps[-1]["dist"])
+openExplorer(json.dumps({"nodes": NODES, "edges": EDGES}), json.dumps(steps), "Dijkstra")
+pushAction("Shortest path found from the Well (Dijkstra)")
+
+# Greedy: with only 3 free plots, always take the crop with the best coins per growing day
+CROPS = {"Carrot": (12, 4), "Tomato": (25, 6), "Eggplant": (35, 7), "Corn": (50, 9), "Watermelon": (80, 10)}  # coins, days
+ranked = sorted(CROPS, key=lambda c: CROPS[c][0] / CROPS[c][1], reverse=True)
+for plot, crop in enumerate(ranked[:3]):
+    print("Greedy pick:", crop, "=", round(CROPS[crop][0] / CROPS[crop][1], 1), "coins/day")
+    addPlantToGrid(plot, crop)
+pushAction("Greedy pick for 3 plots: " + ", ".join(ranked[:3]))
+`
+  },
+  11: {
+    title: "Topic 11: Dynamic Programming & Memoization",
+    code: `# Topic 11: Dynamic Programming + Memoization + Divide-and-Conquer
+CROPS = {"Carrot": (12, 3), "Tomato": (25, 4), "Eggplant": (35, 5), "Corn": (50, 6), "Watermelon": (80, 9)}  # coins, water need
+names = list(CROPS)
+memo, calls = {}, 0
+
+def best(i, water, use_memo=True):
+    """Best coins from crops i.. with water left (0/1 knapsack). Memo = remember answers we already solved."""
+    global calls
+    calls += 1
+    if i == len(names) or water <= 0:
+        return 0
+    if use_memo and (i, water) in memo:
+        return memo[(i, water)]
+    coins, need = CROPS[names[i]]
+    skip = best(i + 1, water, use_memo)
+    take = coins + best(i + 1, water - need, use_memo) if need <= water else 0
+    memo[(i, water)] = max(skip, take)
+    return memo[(i, water)]
+
+def max_yield(vals, lo, hi):                    # Divide-and-Conquer: split the row in half, solve each half
+    if lo == hi:
+        return vals[lo]
+    mid = (lo + hi) // 2
+    return max(max_yield(vals, lo, mid), max_yield(vals, mid + 1, hi))
+
+# ==== WRITE YOUR CODE HERE ====
+WATER = 15
+calls = 0; best(0, WATER, False); plain = calls
+memo.clear(); calls = 0; total = best(0, WATER); memoized = calls
+print("Best harvest with", WATER, "water:", total, "coins")
+print("Recursive calls -> without memo:", plain, "| with memo:", memoized)
+
+chosen, water = [], WATER
+for i, n in enumerate(names):                   # walk the table to see which crops were taken
+    if best(i, water) != best(i + 1, water):
+        chosen.append(n)
+        water -= CROPS[n][1]
+print("Plant these:", chosen)
+for plot, crop in enumerate(chosen):
+    addPlantToGrid(plot, crop)
+pushAction("DP plan: " + ", ".join(chosen) + " = " + str(total) + " coins")
+print("Best single plot yield (divide-and-conquer):", max_yield([CROPS[n][0] for n in names], 0, len(names) - 1))
+
+def fib(n, cache=None, stats=None):             # classic memoization demo: fib(25) without vs with memo
+    stats[0] += 1
+    if n < 2:
+        return n
+    if cache is not None and n in cache:
+        return cache[n]
+    r = fib(n - 1, cache, stats) + fib(n - 2, cache, stats)
+    if cache is not None:
+        cache[n] = r
+    return r
+
+a, b = [0], [0]
+fib(25, None, a); fib(25, {}, b)
+print("fib(25) calls -> without memo:", a[0], "| with memo:", b[0])
+`
+  }
 };

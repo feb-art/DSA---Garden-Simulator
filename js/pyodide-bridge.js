@@ -15,6 +15,7 @@ async function initPyodide() {
     pyodideInstance.globals.set("addPlantsToDropdown", addPlantsToDropdown);
     pyodideInstance.globals.set("pushAction", pushAction);
     pyodideInstance.globals.set("updateClimateQueue", updateClimateQueue);
+    pyodideInstance.globals.set("openExplorer", openExplorer);
     pyodideInstance.globals.set("renderTree", renderTree);
     pyodideInstance.globals.set("unlockAchievement", unlockAchievement);
     pyodideInstance.globals.set("runTraversal", runTraversal);

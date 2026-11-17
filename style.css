@@ -208,3 +208,25 @@ button:active{transform:translateY(3px);box-shadow:none}
 ::-webkit-scrollbar-track{background:#fbeff5}::-webkit-scrollbar-thumb{background:#f2b5cf}::-webkit-scrollbar-thumb:hover{background:#e895b9}
 #audio-dock{position:fixed;left:14px;bottom:14px;display:flex;gap:8px;z-index:60}
 #audio-dock button{width:44px;height:44px;font-size:1.3rem;background:#fff;border:2px solid var(--line)}
+
+/* Path Explorer (slide-in panel) */
+#ex-fab{border:2px solid #f2d3e3;position:fixed;right:14px;bottom:14px;z-index:60;padding:.6rem 1rem;border-radius:999px;background:linear-gradient(135deg,#bdebd6,#cfe6ff);color:#5b4b6e;font-weight:700;box-shadow:0 4px 0 #9fd3bb,0 0 18px rgba(160,210,190,.5)}
+#ex-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#ff8fa3;margin-left:4px;animation:sway 1s infinite}
+#explorer{position:fixed;inset:0;z-index:80;background:rgba(91,75,110,.3);display:flex;justify-content:flex-end;visibility:hidden;opacity:0;transition:opacity .25s}
+#explorer.open{visibility:visible;opacity:1}
+.ex-card{width:min(560px,100vw);height:100%;overflow:auto;background:linear-gradient(180deg,#fffaf5,#f3f8ff);padding:14px;transform:translateX(100%);transition:transform .3s;box-shadow:-10px 0 30px rgba(120,100,150,.3)}
+#explorer.open .ex-card{transform:none}
+.ex-head{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:8px;color:#5b4b6e}
+.ex-head button,.ex-row button{padding:.35rem .8rem;background:#fff;border:2px solid #f2d3e3;color:#3f8f73}
+.ex-head button.on{background:linear-gradient(135deg,#bdebd6,#cfe6ff)}
+.ex-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0;color:#3f8f73}
+#ex-svg{width:100%;height:min(46vh,330px);background:#fff;border:2px solid #f2d3e3;border-radius:1rem}
+.ex-edge{stroke:#cdbfe8;stroke-width:.8}.ex-w{font-size:3.4px;fill:#b8801a;text-anchor:middle;font-weight:700}
+.ex-node circle{fill:#fff;stroke:#b9d9f5;stroke-width:.9;transition:all .3s}
+.ex-node.fr circle{fill:#cfe6ff;stroke:#7aa8d8}.ex-node.vis circle{fill:#bdebd6;stroke:#6fbf9e}
+.ex-node.cur circle{fill:#ffdcc4;stroke:#e6975f;stroke-width:1.4}
+.ex-i{font-size:6px;text-anchor:middle}.ex-n{font-size:3.4px;fill:#5b4b6e;text-anchor:middle;font-weight:600}
+.ex-info{background:#fff;border:2px solid #f2d3e3;border-radius:.9rem;padding:.4rem .7rem;margin:6px 0;font-size:.85rem;color:#5b4b6e}
+.ex-chip{display:inline-block;margin:2px;padding:1px 9px;border-radius:999px;background:#e3d8ff;border:1px solid #c3b3ea}
+#ex-out{font-size:.72rem;color:#3f8f73;white-space:pre-wrap}
+@media (max-width:640px){.ex-card{width:100vw}}

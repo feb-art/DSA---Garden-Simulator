@@ -1,6 +1,6 @@
 // Game state, crop data, and the default hierarchical tree template
 
-const APP_VERSION = "0.3.0";
+const APP_VERSION = "0.4.0";
 
 let pyodideInstance = null;
 
